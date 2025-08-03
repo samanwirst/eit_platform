@@ -29,10 +29,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
         theme: 'snow',
         modules: {
           toolbar: [
-            [{ header: [1, 2, 3, false] }],
+            [{ header: [1, 2, false] }],
             ['bold', 'italic', 'underline', 'strike'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ color: [] }, { background: [] }],
+            ['blockquote', 'code-block'],
+            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+            [{ align: [] }],
             ['link', 'image'],
+            ['insertInput', 'insertSelect', 'insertRadio', 'insertCheckbox', 'insertTable'],
             ['clean'],
           ],
         },
@@ -54,7 +58,12 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
     },
   }));
 
-  return <div ref={editorRef} style={{ height: '300px' }} />;
+  return (
+    <div
+      ref={editorRef}
+      className="h-80 border border-gray-300 rounded p-2"
+    />
+  );
 });
 
 RichTextEditor.displayName = 'RichTextEditor';
