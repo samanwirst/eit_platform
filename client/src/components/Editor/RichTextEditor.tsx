@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import dynamic from 'next/dynamic';
 import 'quill/dist/quill.snow.css';
+import { radioIcon } from './EditorIcons';
 
 export type RichTextEditorHandle = {
   getContent: () => string;
@@ -20,28 +21,55 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
   useEffect(() => {
     let mounted = true;
 
-    import('quill').then((QuillModule) => {
-      if (!mounted || quillRef.current || !editorRef.current) return;
+    Promise.all([
+      import('quill'),
+      import('@/extensions/RadioSelectOption'),
+      import('@/extensions/RadioBlockBlot'),
+    ]).then(([QuillModule, RadioSelectModule, RadioBlotModule]) => {
+      if (!mounted || !editorRef.current) return;
 
       const Quill = QuillModule.default;
+      const Delta = Quill.import('delta');
+      const icons = Quill.import('ui/icons');
 
-      quillRef.current = new Quill(editorRef.current!, {
+      icons.insertRadio = radioIcon;
+
+      Quill.register('modules/insertRadio', RadioSelectModule.default);
+      Quill.register(RadioBlotModule.RadioBlockBlot);
+
+      const quill = new Quill(editorRef.current!, {
         theme: 'snow',
         modules: {
-          toolbar: [
-            [{ header: [1, 2, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ color: [] }, { background: [] }],
-            ['blockquote', 'code-block'],
-            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-            [{ align: [] }],
-            ['link', 'image'],
-            ['insertInput', 'insertSelect', 'insertRadio', 'insertCheckbox', 'insertTable'],
-            ['clean'],
-          ],
+          toolbar: {
+            container: [
+              [{ header: [1, 2, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ color: [] }, { background: [] }],
+              ['blockquote', 'link', 'image', 'code-block'],
+              [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+              [{ align: [] }],
+              ['insertRadio'],
+            ],
+            handlers: {
+              insertRadio() {
+                const mod = quill.getModule('insertRadio');
+                if (mod?.openDialog) mod.openDialog();
+              },
+            },
+          },
+          insertRadio: {},
         },
-        placeholder: 'Write something...',
       });
+
+      quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+        const el = node as HTMLElement;
+        if (el.classList.contains('radio-block')) {
+          return new Delta().insert({ radioBlock: el.innerHTML });
+        }
+        return delta;
+      });
+
+      quillRef.current = quill;
     });
 
     return () => {

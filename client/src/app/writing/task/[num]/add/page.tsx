@@ -9,6 +9,7 @@ const WritingSectionAddPage = () => {
     return (
         <div>
             <h1>Add Writing Task {num}</h1>
+            <input type="text" placeholder="Title" className="border rounded p-2 my-4"/>
             <RichTextEditor />
         </div>
     );
