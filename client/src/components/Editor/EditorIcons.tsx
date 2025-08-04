@@ -4,3 +4,5 @@ export const radioIcon = `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium 
 </svg>`;
 
 export const tableIcon = '<svg viewBox="0 0 18 18"><rect x="1" y="1" width="16" height="16" fill="none" stroke="currentColor"/><line x1="1" y1="6" x2="17" y2="6" stroke="currentColor"/><line x1="1" y1="12" x2="17" y2="12" stroke="currentColor"/><line x1="6" y1="1" x2="6" y2="17" stroke="currentColor"/><line x1="12" y1="1" x2="12" y2="17" stroke="currentColor"/></svg>'
+
+export const selectOptionsIcon = `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="ListIcon"><path d="M3 13h2v-2H3zm0 4h2v-2H3zm0-8h2V7H3zm4 4h14v-2H7zm0 4h14v-2H7zM7 7v2h14V7z"></path></svg>`;

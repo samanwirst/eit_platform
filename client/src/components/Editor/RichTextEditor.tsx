@@ -9,7 +9,7 @@ import React, {
 import dynamic from 'next/dynamic';
 import 'quill/dist/quill.snow.css';
 import 'quill-better-table/dist/quill-better-table.css';
-import { radioIcon, tableIcon } from './EditorIcons';
+import { radioIcon, tableIcon, selectOptionsIcon } from './EditorIcons';
 
 export type RichTextEditorHandle = {
   getContent: () => string;
@@ -27,8 +27,10 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       import('quill-better-table'),
       import('@/extensions/RadioSelectOptionModule'),
       import('@/extensions/RadioBlockBlot'),
+      import('@/extensions/SelectOptionsModule'),
+      import('@/extensions/SelectOptionsBlot'),
       import('@/extensions/TableInsertModule'),
-    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule, RadioBlotModule, TableInsertModule]) => {
+    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule, RadioBlotModule, SelectOptionsModule, SelectOptionsBlot, TableInsertModule]) => {
       if (!mounted || !editorRef.current) return;
 
       const Quill = QuillModule.default;
@@ -37,6 +39,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
 
       icons.insertRadio = radioIcon;
       icons.insertTable = tableIcon;
+      icons.insertSelectOptions = selectOptionsIcon;
 
       Quill.register('modules/insertRadio', RadioSelectModule.default);
       Quill.register(RadioBlotModule.RadioBlockBlot);
@@ -47,6 +50,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
         },
         true
       );
+      Quill.register('modules/insertSelectOptions', SelectOptionsModule.default);
+      Quill.register(SelectOptionsBlot.SelectOptionsBlot);
 
       const quill = new Quill(editorRef.current!, {
         theme: 'snow',
@@ -59,7 +64,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
               ['blockquote', 'link', 'image', 'code-block'],
               [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
               [{ align: [] }],
-              ['insertRadio', 'insertTable'],
+              ['insertSelectOptions', 'insertRadio', 'insertTable'],
             ],
             handlers: {
               insertRadio() {
@@ -70,10 +75,15 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
                 const mod = quill.getModule('insertTable');
                 if (mod?.openDialog) mod.openDialog();
               },
+              insertSelectOptions() {
+                const mod = quill.getModule('insertSelectOptions');
+                if (mod?.openDialog) mod.openDialog();
+              },
             },
           },
           insertRadio: {},
           insertTable: {},
+          insertSelectOptions: {},
           table: false,
           'better-table': {
             operationMenu: {
@@ -93,6 +103,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
         const el = node as HTMLElement;
         if (el.classList.contains('radio-block')) {
           return new Delta().insert({ radioBlock: el.innerHTML });
+        } else if (el.classList.contains('select-options-block')) {
+          return new Delta().insert({ selectOptions: el.innerHTML });
         }
         return delta;
       });
