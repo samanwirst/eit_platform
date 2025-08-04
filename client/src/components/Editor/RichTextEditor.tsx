@@ -8,7 +8,8 @@ import React, {
 } from 'react';
 import dynamic from 'next/dynamic';
 import 'quill/dist/quill.snow.css';
-import { radioIcon } from './EditorIcons';
+import 'quill-better-table/dist/quill-better-table.css';
+import { radioIcon, tableIcon } from './EditorIcons';
 
 export type RichTextEditorHandle = {
   getContent: () => string;
@@ -23,9 +24,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
 
     Promise.all([
       import('quill'),
-      import('@/extensions/RadioSelectOption'),
+      import('quill-better-table'),
+      import('@/extensions/RadioSelectOptionModule'),
       import('@/extensions/RadioBlockBlot'),
-    ]).then(([QuillModule, RadioSelectModule, RadioBlotModule]) => {
+      import('@/extensions/TableInsertModule'),
+    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule, RadioBlotModule, TableInsertModule]) => {
       if (!mounted || !editorRef.current) return;
 
       const Quill = QuillModule.default;
@@ -33,9 +36,17 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       const icons = Quill.import('ui/icons');
 
       icons.insertRadio = radioIcon;
+      icons.insertTable = tableIcon;
 
       Quill.register('modules/insertRadio', RadioSelectModule.default);
       Quill.register(RadioBlotModule.RadioBlockBlot);
+      Quill.register(
+        {
+          'modules/better-table': QuillBetterTable.default,
+          'modules/insertTable': TableInsertModule.default,
+        },
+        true
+      );
 
       const quill = new Quill(editorRef.current!, {
         theme: 'snow',
@@ -48,16 +59,33 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
               ['blockquote', 'link', 'image', 'code-block'],
               [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
               [{ align: [] }],
-              ['insertRadio'],
+              ['insertRadio', 'insertTable'],
             ],
             handlers: {
               insertRadio() {
                 const mod = quill.getModule('insertRadio');
                 if (mod?.openDialog) mod.openDialog();
               },
+              insertTable() {
+                const mod = quill.getModule('insertTable');
+                if (mod?.openDialog) mod.openDialog();
+              },
             },
           },
           insertRadio: {},
+          insertTable: {},
+          table: false,
+          'better-table': {
+            operationMenu: {
+              items: {
+                insertColumnRight: { text: 'Insert column right' },
+                insertRowDown: { text: 'Insert row down' },
+              },
+            },
+          },
+          keyboard: {
+            bindings: QuillBetterTable.default.keyboardBindings,
+          },
         },
       });
 
