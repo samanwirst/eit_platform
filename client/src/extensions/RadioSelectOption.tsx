@@ -47,8 +47,8 @@ const RadioDialog: React.FC<{ quill: any; onClose: () => void }> = ({ quill, onC
                         const value = `option${i + 1}`;
                         return `
               <label>
-                <input type="radio" name="${name}" value="${value}" />
-                ${opt}
+                <input type="radio" name="${name}" value="${value}"/>
+                <span>${opt}</span>
               </label>`;
                     })
                     .join('')}

@@ -20,6 +20,26 @@
  
 /* @custom-variant dark (&:where(.dark, .dark *)); */
 
+.radio-block {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 4px;
+  vertical-align: middle;
+}
+
+.radio-block label {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.radio-block input[type="radio"] {
+  margin: 0 2px 0 0;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
