@@ -42,17 +42,18 @@ const RadioDialog: React.FC<{ quill: any; onClose: () => void }> = ({ quill, onC
         if (sel) {
             const name = `radio-${Date.now()}`;
             const html = `
-        ${options
+            ${options
                     .map((opt, i) => {
                         const value = `option${i + 1}`;
+                        const checked = correctIndex === i ? 'checked' : '';
                         return `
-              <label>
-                <input type="radio" name="${name}" value="${value}"/>
-                <span>${opt}</span>
-              </label>`;
+                  <label>
+                    <input type="radio" name="${name}" value="${value}" ${checked}/>
+                    <span>${opt}</span>
+                  </label>`;
                     })
                     .join('')}
-      `;
+          `;
             quill.insertEmbed(sel.index, 'radioBlock', html);
             quill.setSelection(sel.index + 1);
         }
