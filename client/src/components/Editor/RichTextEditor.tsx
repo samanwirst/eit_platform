@@ -9,7 +9,7 @@ import React, {
 import dynamic from 'next/dynamic';
 import 'quill/dist/quill.snow.css';
 import 'quill-better-table/dist/quill-better-table.css';
-import { radioIcon, tableIcon, selectOptionsIcon, checkBoxIcon } from './EditorIcons';
+import { radioIcon, tableIcon, selectOptionsIcon, checkBoxIcon, inputField } from './EditorIcons';
 
 export type RichTextEditorHandle = {
   getContent: () => string;
@@ -32,7 +32,13 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       import('@/extensions/TableInsertModule'),
       import('@/extensions/CheckboxSelectOptionModule'),
       import('@/extensions/CheckboxBlockBlot'),
-    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule, RadioBlotModule, SelectOptionsModule, SelectOptionsBlot, TableInsertModule, CheckboxSelectOptionModule, CheckboxBlockBlot]) => {
+      import('@/extensions/InputFieldInsertModule'),
+      import('@/extensions/InputFieldBlockBlot'),
+    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule,
+      RadioBlotModule, SelectOptionsModule, SelectOptionsBlot,
+      TableInsertModule, CheckboxSelectOptionModule, CheckboxBlockBlot,
+      InputFieldInsertModule, InputFieldBlockBlot
+    ]) => {
       if (!mounted || !editorRef.current) return;
 
       const Quill = QuillModule.default;
@@ -43,6 +49,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       icons.insertTable = tableIcon;
       icons.insertSelectOptions = selectOptionsIcon;
       icons.insertCheckbox = checkBoxIcon;
+      icons.insertInputField = inputField;
 
       Quill.register('modules/insertRadio', RadioSelectModule.default);
       Quill.register(RadioBlotModule.RadioBlockBlot);
@@ -57,6 +64,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       Quill.register(SelectOptionsBlot.SelectOptionsBlot);
       Quill.register('modules/insertCheckbox', CheckboxSelectOptionModule.default);
       Quill.register(CheckboxBlockBlot.CheckboxBlockBlot);
+      Quill.register('modules/insertInputField', InputFieldInsertModule.default);
+      Quill.register(InputFieldBlockBlot.InputFieldBlockBlot);
 
       const quill = new Quill(editorRef.current!, {
         theme: 'snow',
@@ -69,7 +78,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
               ['blockquote', 'link', 'image', 'code-block'],
               [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
               [{ align: [] }],
-              ['insertSelectOptions', 'insertRadio', 'insertCheckbox', 'insertTable'],
+              ['insertInputField', 'insertSelectOptions', 'insertRadio', 'insertCheckbox', 'insertTable'],
             ],
             handlers: {
               insertRadio() {
@@ -88,12 +97,17 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
                 const mod = quill.getModule('insertCheckbox');
                 if (mod?.openDialog) mod.openDialog();
               },
+              insertInputField() {
+                const mod = quill.getModule('insertInputField');
+                if (mod?.openDialog) mod.openDialog();
+              },
             },
           },
           insertRadio: {},
           insertTable: {},
           insertSelectOptions: {},
           insertCheckbox: {},
+          insertInputField: {},
           table: false,
           'better-table': {
             operationMenu: {
@@ -111,12 +125,13 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
 
       quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
         const el = node as HTMLElement;
-        if (el.classList.contains('radio-block')) {
-          return new Delta().insert({ radioBlock: el.innerHTML });
-        } else if (el.classList.contains('select-options-block')) {
-          return new Delta().insert({ selectOptions: el.innerHTML });
-        } else if (el.classList.contains('checkbox-block')) {
-          return new Delta().insert({ checkboxBlock: el.innerHTML });
+        if (el.classList.contains('input-field-block')) {
+          return new Delta().insert({
+            inputFieldBlock: {
+              values: JSON.parse(el.dataset.values || '[]'),
+              example: el.dataset.example === 'true'
+            }
+          });
         }
         return delta;
       });
