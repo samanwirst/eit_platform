@@ -9,7 +9,7 @@ import React, {
 import dynamic from 'next/dynamic';
 import 'quill/dist/quill.snow.css';
 import 'quill-better-table/dist/quill-better-table.css';
-import { radioIcon, tableIcon, selectOptionsIcon } from './EditorIcons';
+import { radioIcon, tableIcon, selectOptionsIcon, checkBoxIcon } from './EditorIcons';
 
 export type RichTextEditorHandle = {
   getContent: () => string;
@@ -30,7 +30,9 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       import('@/extensions/SelectOptionsModule'),
       import('@/extensions/SelectOptionsBlot'),
       import('@/extensions/TableInsertModule'),
-    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule, RadioBlotModule, SelectOptionsModule, SelectOptionsBlot, TableInsertModule]) => {
+      import('@/extensions/CheckboxSelectOptionModule'),
+      import('@/extensions/CheckboxBlockBlot'),
+    ]).then(([QuillModule, QuillBetterTable, RadioSelectModule, RadioBlotModule, SelectOptionsModule, SelectOptionsBlot, TableInsertModule, CheckboxSelectOptionModule, CheckboxBlockBlot]) => {
       if (!mounted || !editorRef.current) return;
 
       const Quill = QuillModule.default;
@@ -40,6 +42,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       icons.insertRadio = radioIcon;
       icons.insertTable = tableIcon;
       icons.insertSelectOptions = selectOptionsIcon;
+      icons.insertCheckbox = checkBoxIcon;
 
       Quill.register('modules/insertRadio', RadioSelectModule.default);
       Quill.register(RadioBlotModule.RadioBlockBlot);
@@ -52,6 +55,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       );
       Quill.register('modules/insertSelectOptions', SelectOptionsModule.default);
       Quill.register(SelectOptionsBlot.SelectOptionsBlot);
+      Quill.register('modules/insertCheckbox', CheckboxSelectOptionModule.default);
+      Quill.register(CheckboxBlockBlot.CheckboxBlockBlot);
 
       const quill = new Quill(editorRef.current!, {
         theme: 'snow',
@@ -64,7 +69,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
               ['blockquote', 'link', 'image', 'code-block'],
               [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
               [{ align: [] }],
-              ['insertSelectOptions', 'insertRadio', 'insertTable'],
+              ['insertSelectOptions', 'insertRadio', 'insertCheckbox', 'insertTable'],
             ],
             handlers: {
               insertRadio() {
@@ -79,11 +84,16 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
                 const mod = quill.getModule('insertSelectOptions');
                 if (mod?.openDialog) mod.openDialog();
               },
+              insertCheckbox() {
+                const mod = quill.getModule('insertCheckbox');
+                if (mod?.openDialog) mod.openDialog();
+              },
             },
           },
           insertRadio: {},
           insertTable: {},
           insertSelectOptions: {},
+          insertCheckbox: {},
           table: false,
           'better-table': {
             operationMenu: {
@@ -105,6 +115,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
           return new Delta().insert({ radioBlock: el.innerHTML });
         } else if (el.classList.contains('select-options-block')) {
           return new Delta().insert({ selectOptions: el.innerHTML });
+        } else if (el.classList.contains('checkbox-block')) {
+          return new Delta().insert({ checkboxBlock: el.innerHTML });
         }
         return delta;
       });
