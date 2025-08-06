@@ -1,0 +1,1 @@
+export const createSection = async (data: any) => { console.log(data) };

@@ -13,6 +13,7 @@ import { radioIcon, tableIcon, selectOptionsIcon, checkBoxIcon, inputField } fro
 
 export type RichTextEditorHandle = {
   getContent: () => string;
+  getContents: () => any;
 };
 
 const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
@@ -55,11 +56,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       Quill.register(RadioBlotModule.RadioBlockBlot);
       Quill.register(
         {
-          'modules/better-table': QuillBetterTable.default,
-          'modules/insertTable': TableInsertModule.default,
-        },
-        true
-      );
+        'modules/better-table': QuillBetterTable.default,
+        'modules/insertTable': TableInsertModule.default,
+      }, 
+      true
+    );
       Quill.register('modules/insertSelectOptions', SelectOptionsModule.default);
       Quill.register(SelectOptionsBlot.SelectOptionsBlot);
       Quill.register('modules/insertCheckbox', CheckboxSelectOptionModule.default);
@@ -83,23 +84,23 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
             handlers: {
               insertRadio() {
                 const mod = quill.getModule('insertRadio');
-                if (mod?.openDialog) mod.openDialog();
+                mod?.openDialog();
               },
               insertTable() {
                 const mod = quill.getModule('insertTable');
-                if (mod?.openDialog) mod.openDialog();
+                mod?.openDialog();
               },
               insertSelectOptions() {
                 const mod = quill.getModule('insertSelectOptions');
-                if (mod?.openDialog) mod.openDialog();
+                mod?.openDialog();
               },
               insertCheckbox() {
                 const mod = quill.getModule('insertCheckbox');
-                if (mod?.openDialog) mod.openDialog();
+                mod?.openDialog();
               },
               insertInputField() {
                 const mod = quill.getModule('insertInputField');
-                if (mod?.openDialog) mod.openDialog();
+                mod?.openDialog();
               },
             },
           },
@@ -145,12 +146,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
   }, []);
 
   useImperativeHandle(ref, () => ({
-    getContent: () => {
-      if (quillRef.current) {
-        return quillRef.current.root.innerHTML;
-      }
-      return '';
-    },
+    getContent: () => quillRef.current?.root.innerHTML || '',
+    getContents: () => quillRef.current?.getContents() || { ops: [] },
   }));
 
   return (
