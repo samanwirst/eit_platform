@@ -51,10 +51,10 @@ const WritingSectionAddPage: React.FC = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto py-8">
-            <h1 className="text-2xl font-semibold mb-6">Add Writing Task {num}</h1>
+        <div className="max-w-3xl mx-auto">
+            <h1 className="text-2xl font-semibold mb-4">Add Writing Task {num}</h1>
 
-            <div className="space-y-6 mb-6">
+            <div className="mb-6">
                 <InputDefault
                     label="Title"
                     name="title"
@@ -63,15 +63,17 @@ const WritingSectionAddPage: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
+                    customClasses='mb-4'
                 />
 
-                <RichTextEditor ref={editorRef} />
+                <RichTextEditor ref={editorRef}/>
 
                 <DragAndDropUpload
                     onFilesSelected={handleFiles}
                     multiple
                     maxFiles={5}
                     placeholder="Drag & drop the writing task image here"
+                    className='my-4'
                 />
             </div>
 
