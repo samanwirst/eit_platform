@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import LayoutDefault from "@/components/Layouts/LayoutDefault";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
   title: "EIT Mock Platform",
@@ -16,7 +17,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <LayoutDefault>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </LayoutDefault>
       </body>
     </html>
