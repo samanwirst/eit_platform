@@ -1,88 +1,97 @@
-'use client'
+'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import RichTextEditor, { RichTextEditorHandle } from '@/components/Editor/RichTextEditor';
 import InputDefault from '@/components/Inputs/InputDefault';
 import DragAndDropUpload from '@/components/Inputs/DragAndDropUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
-import { createSection } from '@/utils/api';
+import { createTest } from '@/utils/api';
 
 const WritingSectionAddPage: React.FC = () => {
-    const params = useParams();
+    const { num } = useParams();       // номер секции из URL
     const router = useRouter();
-    const num = params.num as string;
 
     const editorRef = useRef<RichTextEditorHandle>(null);
     const [title, setTitle] = useState('');
     const [files, setFiles] = useState<File[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Забираем токен из localStorage (или context)
+    const [token, setToken] = useState<string | null>(null);
+    useEffect(() => {
+        setToken(localStorage.getItem('accessToken'));
+    }, []);
+
     const handleFiles = (chosen: File[]) => {
         setFiles(chosen);
     };
 
     const handleSubmit = async () => {
-        if (!editorRef.current) return;
+        if (!editorRef.current || !token) return;
         setIsSubmitting(true);
 
         try {
+            // 1) Собираем Delta
             const delta = editorRef.current.getContents();
-            console.log('Delta:', delta);
-            console.log('JSON:', JSON.stringify(delta));
-
             const contentJson = JSON.stringify(delta);
 
+            // 2) Формируем FormData
             const formData = new FormData();
-            formData.append('section_number', num);
+            formData.append('folder', '');              // <-- при необходимости передай ID папки
             formData.append('title', title);
-            formData.append('content', contentJson);
+            formData.append('section_number', num);
+            formData.append('section_type', 'writing'); // <-- фиксируем тип секции
+            formData.append('delta', contentJson);
             files.forEach((file) => formData.append('files', file));
 
-            await createSection(formData);
+            // 3) Отправляем на бэк
+            await createTest(formData);
 
-            // router.push(`/sections/${num}`);
-        } catch (error) {
-            console.error(error);
-            alert('Ошибка при сохранении секции');
+            // 4) Редирект на список секций или страницу теста
+            router.push(`/folders`);
+        } catch (err: any) {
+            console.error(err);
+            alert('Ошибка при сохранении секции: ' + err.message);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-semibold mb-4">Add Writing Task {num}</h1>
+        <div className="max-w-3xl mx-auto py-8">
+            <h1 className="text-2xl font-semibold mb-6">Add Writing Section {num}</h1>
 
-            <div className="mb-6">
+            <div className="space-y-6 mb-6">
                 <InputDefault
                     label="Title"
                     name="title"
                     type="text"
                     placeholder="Enter title"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={e => setTitle(e.target.value)}
                     required
-                    customClasses='mb-4'
+                    customClasses="mb-4"
                 />
 
-                <RichTextEditor ref={editorRef}/>
+                <RichTextEditor ref={editorRef} />
 
                 <DragAndDropUpload
                     onFilesSelected={handleFiles}
                     multiple
                     maxFiles={5}
-                    placeholder="Drag & drop the writing task image here"
-                    className='my-4'
+                    placeholder="Drag & drop images here"
+                    className="my-4"
                 />
             </div>
 
             <ButtonDefault
-                label={isSubmitting ? 'Submitting…' : 'Add Section'}
+                label={isSubmitting ? 'Submitting…' : 'Create Writing Section'}
                 onClick={handleSubmit}
                 disabled={isSubmitting}
             />
         </div>
     );
-}
+};
+
 export default WritingSectionAddPage;
