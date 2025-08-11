@@ -1,128 +1,150 @@
-// lib/api.ts
-const API_URL = "http://127.0.0.1:8000/api";
+import Cookies from "js-cookie";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+type RequestMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 interface RequestOptions {
-    token?: string;
-    headers?: Record<string, string>;
+    method?: RequestMethod;
+    headers?: HeadersInit;
     body?: any;
+    token?: string;
+    queryParams?: Record<string, any>;
+}
+
+function buildQueryString(params?: Record<string, any>): string {
+    if (!params) return '';
+    const esc = encodeURIComponent;
+    const query = Object.entries(params)
+        .map(([k, v]) => `${esc(k)}=${esc(v)}`)
+        .join('&');
+    return query ? `?${query}` : '';
 }
 
 async function request<T>(
-    method: HttpMethod,
-    path: string,
-    { token, headers, body }: RequestOptions = {}
+    endpoint: string,
+    { method = 'GET', headers = {}, body, token, queryParams }: RequestOptions = {}
 ): Promise<T> {
-    const config: RequestInit = {
+    const url = `${API_BASE_URL}${endpoint}${buildQueryString(queryParams)}`;
+    const accessToken = token || Cookies.get("access");
+
+    const fetchOptions: RequestInit = {
         method,
         headers: {
-            ...(body instanceof FormData
-                ? {} // fetch сам поставит boundary для FormData
-                : { "Content-Type": "application/json" }),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'Content-Type': 'application/json',
             ...headers,
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
+        ...(body ? { body: JSON.stringify(body) } : {}),
     };
 
-    if (body !== undefined) {
-        config.body = body instanceof FormData ? body : JSON.stringify(body);
-    }
+    const response = await fetch(url, fetchOptions);
 
-    const res = await fetch(`${API_URL}${path}`, config);
+    const text = await response.text();
 
-    if (!res.ok) {
-        let errorMessage = `${res.status} ${res.statusText}`;
+    if (!response.ok) {
+        let errorData: any = {};
         try {
-            const errorData = await res.json();
-            errorMessage = errorData.detail || JSON.stringify(errorData);
-        } catch {
-            /* игнорируем, если тело не JSON */
+            errorData = text ? JSON.parse(text) : {};
+        } catch (parseErr) {
+            console.warn("Failed to parse error response:", parseErr);
         }
-        throw new Error(errorMessage);
+
+        const error: any = new Error(errorData?.detail || response.statusText);
+        error.response = { data: errorData };
+
+        throw error;
     }
 
-    if (res.status === 204) return null as T;
-    return res.json();
+    try {
+        return text ? JSON.parse(text) : ({} as T);
+    } catch {
+        return {} as T;
+    }
 }
 
-// --- Базовые методы ---
-export const get = <T>(path: string, options?: RequestOptions) =>
-    request<T>("GET", path, options);
+// Shortcut functions
 
-export const post = <T>(path: string, body?: any, options?: RequestOptions) =>
-    request<T>("POST", path, { ...options, body });
+export const api = {
+    get: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+        request<T>(endpoint, { ...options, method: 'GET' }),
 
-export const put = <T>(path: string, body?: any, options?: RequestOptions) =>
-    request<T>("PUT", path, { ...options, body });
+    post: <T>(endpoint: string, body?: any, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+        request<T>(endpoint, { ...options, method: 'POST', body }),
 
-export const patch = <T>(path: string, body?: any, options?: RequestOptions) =>
-    request<T>("PATCH", path, { ...options, body });
+    patch: <T>(endpoint: string, body?: any, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+        request<T>(endpoint, { ...options, method: 'PATCH', body }),
 
-export const del = <T>(path: string, options?: RequestOptions) =>
-    request<T>("DELETE", path, options);
+    put: <T>(endpoint: string, body?: any, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+        request<T>(endpoint, { ...options, method: 'PUT', body }),
 
-// ========== USERS (только для админа) ==========
-export const getUsers = (token: string) =>
-    get("/users/", { token });
+    del: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+        request<T>(endpoint, { ...options, method: 'DELETE' }),
+};
 
+// AUTHENTICATION
+export const loginRequest = (username: string, password: string) => { return api.post<{ access: string; refresh: string }>('/auth/login/', { username, password }) };
 
 // ========== FOLDERS ==========
 export const createFolder = (data: any, token: string) =>
-    post("/folders/", data, { token });
+    api.post("/folders/", data, { token });
 
 export const getFolders = (token: string) =>
-    get("/folders/", { token });
+    api.get("/folders/", { token });
 
 export const updateFolder = (id: number, data: any, token: string) =>
-    put(`/folders/${id}/`, data, { token });
+    api.put(`/folders/${id}/`, data, { token });
 
 export const deleteFolder = (id: number, token: string) =>
-    del(`/folders/${id}/`, { token });
+    api.del(`/folders/${id}/`, { token });
 
 export const joinFolder = (id: number, code: string, token: string) =>
-    post(`/folders/${id}/join/`, { code }, { token });
+    api.post(`/folders/${id}/join/`, { code }, { token });
 
 
 // ========== TESTS ==========
-export const createTest = (data: any, token: string) =>
-    post("/tests/", data, { token });
+export const createTest = (data: FormData) =>
+    request("/tests/", {
+        method: "POST",
+        body: data,
+        headers: {}
+    });
 
 export const getTests = (token: string) =>
-    get("/tests/", { token });
+    api.get("/tests/", { token });
 
 export const getTestById = (id: number, token: string) =>
-    get(`/tests/${id}/`, { token });
+    api.get(`/tests/${id}/`, { token });
 
 export const updateTest = (id: number, data: any, token: string) =>
-    put(`/tests/${id}/`, data, { token });
+    api.put(`/tests/${id}/`, data, { token });
 
 export const deleteTest = (id: number, token: string) =>
-    del(`/tests/${id}/`, { token });
+    api.del(`/tests/${id}/`, { token });
 
 
 // ========== SESSIONS ==========
 export const createSession = (data: any, token: string) =>
-    post("/sessions/", data, { token });
+    api.post("/sessions/", data, { token });
 
 export const getSessions = (token: string) =>
-    get("/sessions/", { token });
+    api.get("/sessions/", { token });
 
 export const getSessionById = (id: number, token: string) =>
-    get(`/sessions/${id}/`, { token });
+    api.get(`/sessions/${id}/`, { token });
 
 
 // ========== ANSWERS ==========
 export const sendAnswer = (data: any, token: string) =>
-    post("/answers/", data, { token });
+    api.post("/answers/", data, { token });
 
-export const getAnswers = (token: string) =>
-    get("/answers/", { token });
+export const getAnswersOld = (token: string) =>
+    api.get("/answers/", { token });
 
 
 // ========== AUTH ==========
-export const login = (username: string, password: string) =>
-    post<{ access: string; refresh: string }>('/token/', { username, password });
+export const loginOld = (username: string, password: string) =>
+    api.post<{ access: string; refresh: string }>('/token/', { username, password });
 
 export const refreshToken = (refresh: string) =>
-    post<{ access: string }>('/token/refresh/', { refresh });
+    api.post<{ access: string }>('/token/refresh/', { refresh });

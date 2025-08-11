@@ -44,7 +44,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
 
       const Quill = QuillModule.default;
       const Delta = Quill.import('delta');
-      const icons = Quill.import('ui/icons');
+      const icons = Quill.import('ui/icons') as Record<string, any>;
 
       icons.insertRadio = radioIcon;
       icons.insertTable = tableIcon;
@@ -56,11 +56,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       Quill.register(RadioBlotModule.RadioBlockBlot);
       Quill.register(
         {
-        'modules/better-table': QuillBetterTable.default,
-        'modules/insertTable': TableInsertModule.default,
-      }, 
-      true
-    );
+          'modules/better-table': QuillBetterTable.default,
+          'modules/insertTable': TableInsertModule.default,
+        },
+        true
+      );
       Quill.register('modules/insertSelectOptions', SelectOptionsModule.default);
       Quill.register(SelectOptionsBlot.SelectOptionsBlot);
       Quill.register('modules/insertCheckbox', CheckboxSelectOptionModule.default);

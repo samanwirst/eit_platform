@@ -17,38 +17,31 @@ const WritingSectionAddPage: React.FC = () => {
     const [files, setFiles] = useState<File[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Забираем токен из localStorage (или context)
-    const [token, setToken] = useState<string | null>(null);
-    useEffect(() => {
-        setToken(localStorage.getItem('accessToken'));
-    }, []);
-
     const handleFiles = (chosen: File[]) => {
         setFiles(chosen);
     };
 
     const handleSubmit = async () => {
-        if (!editorRef.current || !token) return;
-        setIsSubmitting(true);
+        if (!editorRef.current) {
+            alert("Editor not ready");
+            return;
+        }
 
+        setIsSubmitting(true);
         try {
-            // 1) Собираем Delta
             const delta = editorRef.current.getContents();
             const contentJson = JSON.stringify(delta);
 
-            // 2) Формируем FormData
             const formData = new FormData();
-            formData.append('folder', '');              // <-- при необходимости передай ID папки
+            formData.append('folder', '');
             formData.append('title', title);
             formData.append('section_number', num);
-            formData.append('section_type', 'writing'); // <-- фиксируем тип секции
+            formData.append('section_type', 'writing');
             formData.append('delta', contentJson);
             files.forEach((file) => formData.append('files', file));
 
-            // 3) Отправляем на бэк
-            await createTest(formData);
+            await createTest(formData); // передаём токен
 
-            // 4) Редирект на список секций или страницу теста
             router.push(`/folders`);
         } catch (err: any) {
             console.error(err);
@@ -62,7 +55,7 @@ const WritingSectionAddPage: React.FC = () => {
         <div className="max-w-3xl mx-auto py-8">
             <h1 className="text-2xl font-semibold mb-6">Add Writing Section {num}</h1>
 
-            <div className="space-y-6 mb-6">
+            <div className="mb-6">
                 <InputDefault
                     label="Title"
                     name="title"

@@ -1,59 +1,48 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/auth";
 import InputDefault from '@/components/Inputs/InputDefault';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
-export default function LoginPage() {
-    const { login } = useAuth();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+const LoginPage = () => {
+    const router = useRouter();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
         try {
             await login(username, password);
-            // после успешного логина AuthProvider перенаправит
+            router.push("/");
         } catch (err: any) {
             setError(err.message);
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center h-screen">
-            <form onSubmit={handleSubmit} className="p-6 shadow-md rounded bg-white w-full max-w-sm">
-                <h1 className="text-xl font-semibold mb-4">Login</h1>
-                {error && <p className="text-red-500 mb-2">{error}</p>}
-
+        <div className="p-8 max-w-md mx-auto">
+            <h1 className="text-2xl mb-4">Login</h1>
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <InputDefault
-                    label="Username"
-                    name="username"
-                    type="text"
+                    placeholder="Username"
                     value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    required
-                    customClasses="mb-4"
+                    type="text"
+                    onChange={(e) => setUsername(e.target.value)}
                 />
-
                 <InputDefault
-                    label="Password"
-                    name="password"
+                    placeholder="Password"
                     type="password"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    customClasses="mb-6"
+                    onChange={(e) => setPassword(e.target.value)}
                 />
-
-                <ButtonDefault label={loading ? 'Logging in…' : 'Login'} disabled={loading} type="submit" />
+                <ButtonDefault type="submit" label="Login" className="bg-blue-600 text-white p-2" />
+                {error && <p className="text-red-500">{error}</p>}
             </form>
         </div>
     );
 }
+
+export default LoginPage;
