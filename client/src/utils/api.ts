@@ -43,6 +43,18 @@ async function request<T>(
     const text = await response.text();
 
     if (!response.ok) {
+        // Handle 401 Unauthorized - redirect to login
+        if (response.status === 401) {
+            // Clear any existing tokens
+            Cookies.remove("access");
+            Cookies.remove("refresh");
+            // Redirect to login page
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+            throw new Error("Unauthorized - please login again");
+        }
+
         let errorData: any = {};
         try {
             errorData = text ? JSON.parse(text) : {};
@@ -88,7 +100,7 @@ export const loginRequest = (username: string, password: string) => { return api
 // ========== FOLDERS ==========
 export const createFolder = (data: any, token: string) =>
     api.post("/folders/", data, { token });
-
+    
 export const getFolders = (token: string) =>
     api.get("/folders/", { token });
 
