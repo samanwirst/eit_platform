@@ -25,7 +25,8 @@ const Sidebar = () => {
         },
         {
             label: "Reading",
-            type: "dropdown",
+            type: "dropdown" as const,
+            route: "/reading",
             children: [
                 { label: "Section 1", route: "/reading/section/1" },
                 { label: "Section 2", route: "/reading/section/2" },
@@ -34,7 +35,8 @@ const Sidebar = () => {
         },
         {
             label: "Writing",
-            type: "dropdown",
+            type: "dropdown" as const,
+            route: "/writing",
             children: [
                 { label: "Task 1", route: "/writing/task/1" },
                 { label: "Task 2", route: "/writing/task/2" },

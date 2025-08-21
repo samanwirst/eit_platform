@@ -3,6 +3,7 @@
 import React from 'react';
 import TableDefault from '@/components/Tables/TableDefault';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
+import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
 const UsersPage = () => {
     // Static data for demonstration
@@ -18,12 +19,16 @@ const UsersPage = () => {
             label: 'Actions',
             render: (value: any, row: any) => (
                 <div className="flex space-x-2">
-                    <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
-                        Edit
-                    </button>
-                    <button className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">
-                        Delete
-                    </button>
+                    <ButtonDefault 
+                        label="Edit"
+                        onClick={() => console.log('Edit user:', row.id)}
+                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                    />
+                    <ButtonDefault 
+                        label="Delete"
+                        onClick={() => console.log('Delete user:', row.id)}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                    />
                 </div>
             )
         }
@@ -85,9 +90,11 @@ const UsersPage = () => {
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex justify-between items-center">
                         <h2 className="text-lg font-semibold text-gray-800">All Users</h2>
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                            Add New User
-                        </button>
+                        <ButtonDefault 
+                            label="Add New User"
+                            onClick={() => console.log('Add new user')}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        />
                     </div>
                 </div>
                 
