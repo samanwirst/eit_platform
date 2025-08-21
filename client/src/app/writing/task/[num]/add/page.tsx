@@ -6,6 +6,7 @@ import RichTextEditor, { RichTextEditorHandle } from '@/components/Editor/RichTe
 import InputDefault from '@/components/Inputs/InputDefault';
 import DragAndDropUpload from '@/components/Inputs/DragAndDropUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
+import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import { createTest } from '@/utils/api';
 
 const WritingSectionAddPage: React.FC = () => {
@@ -35,7 +36,7 @@ const WritingSectionAddPage: React.FC = () => {
             const formData = new FormData();
             formData.append('folder', '');
             formData.append('title', title);
-            formData.append('section_number', num);
+            formData.append('section_number', num as string);
             formData.append('section_type', 'writing');
             formData.append('delta', contentJson);
             files.forEach((file) => formData.append('files', file));
@@ -53,6 +54,8 @@ const WritingSectionAddPage: React.FC = () => {
 
     return (
         <div className="max-w-3xl mx-auto py-8">
+            <Breadcrumb />
+
             <h1 className="text-2xl font-semibold mb-6">Add Writing Section {num}</h1>
 
             <div className="mb-6">

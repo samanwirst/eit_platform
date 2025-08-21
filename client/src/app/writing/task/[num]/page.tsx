@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
+import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 
 const WritingSectionPage = () => {
     const params = useParams();
@@ -16,7 +17,8 @@ const WritingSectionPage = () => {
 
     return (
         <div>
-            <h1>Writing Task {num}</h1>
+            <Breadcrumb />
+            <h1 className="text-2xl font-bold mb-4">Writing Task {num}</h1>
             <ButtonDefault label="+ Add" onClick={handleAddNewSection} />
         </div>
     );

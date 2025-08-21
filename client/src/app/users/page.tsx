@@ -2,6 +2,7 @@
 
 import React from 'react';
 import TableDefault from '@/components/Tables/TableDefault';
+import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 
 const UsersPage = () => {
     // Static data for demonstration
@@ -73,6 +74,8 @@ const UsersPage = () => {
 
     return (
         <div className="container mx-auto p-4">
+            <Breadcrumb pageName="Users Management" />
+            
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Users Management</h1>
                 <p className="text-gray-600">Manage system users, roles, and permissions</p>
