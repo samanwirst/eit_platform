@@ -45,7 +45,6 @@ async function request<T>(
     if (!response.ok) {
         if (response.status === 401) {
             Cookies.remove("access");
-            Cookies.remove("refresh");
             if (typeof window !== 'undefined') {
                 window.location.href = '/login';
             }
@@ -92,7 +91,17 @@ export const api = {
 };
 
 // AUTHENTICATION
-export const loginRequest = (username: string, password: string) => { return api.post<{ access: string; refresh: string }>('/auth/login/', { username, password }) };
+export const loginRequest = (phoneNumber: string, password: string) => { return api.post<{ ok: boolean; jwt: string }>('/login', { phoneNumber, password }) };
+
+// ========== USERS ==========
+export const createUser = (data: { firstName: string; lastName: string; phoneNumber: string; password: string; role: string }, token: string) =>
+    api.post("/users/", data, { token });
+
+export const getUsers = (token: string) =>
+    api.get("/users/", { token });
+
+export const deleteUser = (id: number, token: string) =>
+    api.del(`/users/${id}/`, { token });
 
 // ========== FOLDERS ==========
 export const createFolder = (data: any, token: string) =>
@@ -152,8 +161,8 @@ export const getAnswersOld = (token: string) =>
 
 
 // ========== AUTH ==========
-export const loginOld = (username: string, password: string) =>
-    api.post<{ access: string; refresh: string }>('/token/', { username, password });
+export const loginOld = (phone_number: string, password: string) =>
+    api.post<{ access: string; refresh: string }>('/token/', { phone_number, password });
 
 export const refreshToken = (refresh: string) =>
     api.post<{ access: string }>('/token/refresh/', { refresh });

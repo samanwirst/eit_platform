@@ -11,15 +11,14 @@ interface TokenPayload {
 }
 
 // Логин + сохранение токенов в cookie
-export async function login(username: string, password: string): Promise<void> {
-  const { access, refresh } = await loginRequest(username, password);
+export async function login(phoneNumber: string, password: string): Promise<void> {
+  const { ok, jwt } = await loginRequest(phoneNumber, password);
 
-  if (!access || !refresh) {
+  if (!ok || !jwt) {
     throw new Error("Invalid login response");
   }
 
-  Cookies.set(ACCESS_TOKEN_KEY, access, { expires: 1 });
-  Cookies.set(REFRESH_TOKEN_KEY, refresh, { expires: 7 });
+  Cookies.set(ACCESS_TOKEN_KEY, jwt, { expires: 1 });
 }
 
 export function logout(): void {

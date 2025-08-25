@@ -12,6 +12,7 @@ interface InputDefaultProps {
     required?: boolean;
     disabled?: boolean;
     isCopiable?: boolean;
+    maxLength?: number;
 }
 
 const InputDefault: React.FC<InputDefaultProps> = ({
@@ -24,7 +25,8 @@ const InputDefault: React.FC<InputDefaultProps> = ({
     placeholder = "",
     required,
     disabled,
-    isCopiable
+    isCopiable,
+    maxLength
 }) => {
     const handleCopy = () => {
         if (isCopiable && navigator.clipboard) {
@@ -49,6 +51,7 @@ const InputDefault: React.FC<InputDefaultProps> = ({
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled}
+                    maxLength={maxLength}
                     className={`w-full ${isCopiable && 'pr-10'} p-2 pl-4 outline-none border border-gray-400 rounded-sm`}
                 />
                 {isCopiable && (
