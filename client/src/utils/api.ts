@@ -94,14 +94,22 @@ export const api = {
 export const loginRequest = (phoneNumber: string, password: string) => { return api.post<{ ok: boolean; jwt: string }>('/login', { phoneNumber, password }) };
 
 // ========== USERS ==========
+export interface User {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    role: string;
+}
+
 export const createUser = (data: { firstName: string; lastName: string; phoneNumber: string; password: string; role: string }, token: string) =>
-    api.post("/users/", data, { token });
+    api.post<User>("/users", data, { token });
 
 export const getUsers = (token: string) =>
-    api.get("/users/", { token });
+    api.get<User[]>("/users", { token });
 
-export const deleteUser = (id: number, token: string) =>
-    api.del(`/users/${id}/`, { token });
+export const deleteUser = (id: string, token: string) =>
+    api.del<{ success: boolean }>(`/user/${id}`, { token });
 
 // ========== FOLDERS ==========
 export const createFolder = (data: any, token: string) =>
