@@ -39,7 +39,6 @@ async function request<T>(
     };
 
     const response = await fetch(url, fetchOptions);
-
     const text = await response.text();
 
     if (!response.ok) {
@@ -55,12 +54,11 @@ async function request<T>(
         try {
             errorData = text ? JSON.parse(text) : {};
         } catch (parseErr) {
-            console.warn("Failed to parse error response:", parseErr);
+            // Silent fail for JSON parsing
         }
 
-        const error: any = new Error(errorData?.detail || response.statusText);
-        error.response = { data: errorData };
-
+        const error: any = new Error(errorData?.detail || errorData?.message || response.statusText);
+        error.response = { data: errorData, status: response.status };
         throw error;
     }
 
@@ -72,7 +70,6 @@ async function request<T>(
 }
 
 // Shortcut functions
-
 export const api = {
     get: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
         request<T>(endpoint, { ...options, method: 'GET' }),
@@ -91,7 +88,9 @@ export const api = {
 };
 
 // AUTHENTICATION
-export const loginRequest = (phoneNumber: string, password: string) => { return api.post<{ ok: boolean; jwt: string }>('/login', { phoneNumber, password }) };
+export const loginRequest = (phoneNumber: string, password: string) => {
+    return api.post<{ ok: boolean; jwt: string }>('/login', { phoneNumber, password })
+};
 
 // ========== USERS ==========
 export interface User {
@@ -99,17 +98,34 @@ export interface User {
     firstName: string;
     lastName: string;
     phoneNumber: string;
-    role: string;
+    role: 'admin' | 'student';
 }
 
-export const createUser = (data: { firstName: string; lastName: string; phoneNumber: string; password: string; role: string }, token: string) =>
-    api.post<User>("/users", data, { token });
+export interface CreateUserData {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    password: string;
+    role: 'admin' | 'student';
+}
+
+export const createUser = async (data: CreateUserData, token: string): Promise<User> => {
+    const cleanData = {
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        phoneNumber: data.phoneNumber.trim(),
+        password: data.password,
+        role: data.role
+    };
+
+    return api.post<User>("/users", cleanData, { token });
+};
 
 export const getUsers = (token: string) =>
     api.get<User[]>("/users", { token });
 
 export const deleteUser = (id: string, token: string) =>
-    api.del<{ success: boolean }>(`/user/${id}`, { token });
+    api.del<{ success: boolean }>(`/users/${id}`, { token });
 
 // ========== FOLDERS ==========
 export const createFolder = (data: any, token: string) =>
@@ -126,7 +142,6 @@ export const deleteFolder = (id: number, token: string) =>
 
 export const joinFolder = (id: number, code: string, token: string) =>
     api.post(`/folders/${id}/join/`, { code }, { token });
-
 
 // ========== TESTS ==========
 export const createTest = (data: FormData) =>
@@ -148,7 +163,6 @@ export const updateTest = (id: number, data: any, token: string) =>
 export const deleteTest = (id: number, token: string) =>
     api.del(`/tests/${id}/`, { token });
 
-
 // ========== SESSIONS ==========
 export const createSession = (data: any, token: string) =>
     api.post("/sessions/", data, { token });
@@ -159,14 +173,12 @@ export const getSessions = (token: string) =>
 export const getSessionById = (id: number, token: string) =>
     api.get(`/sessions/${id}/`, { token });
 
-
 // ========== ANSWERS ==========
 export const sendAnswer = (data: any, token: string) =>
     api.post("/answers/", data, { token });
 
 export const getAnswersOld = (token: string) =>
     api.get("/answers/", { token });
-
 
 // ========== AUTH ==========
 export const loginOld = (phone_number: string, password: string) =>

@@ -1,46 +1,62 @@
 import { useState, useEffect } from 'react';
-import { getUsers, deleteUser, User } from '@/utils/api';
+import { getUsers, deleteUser, createUser, User, CreateUserData } from '@/utils/api';
 import { getAccessToken } from '@/lib/auth';
 
-export const useUsers = () => {
+interface UseUsersReturn {
+    users: User[];
+    loading: boolean;
+    fetchUsers: () => Promise<void>;
+    deleteUser: (userId: string) => Promise<void>;
+    createUser: (userData: CreateUserData) => Promise<User>;
+}
+
+export const useUsers = (): UseUsersReturn => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            setError(null);
             const token = getAccessToken();
-            if (!token) throw new Error('No token');
+            if (!token) return;
 
             const response = await getUsers(token);
-
-            // ✅ Ensure users is always an array
             const data = Array.isArray(response)
                 ? response
                 : Array.isArray((response as any)?.users)
                     ? (response as any).users
-                    : [];
-
+                    : Array.isArray((response as any)?.data)
+                        ? (response as any).data
+                        : [];
             setUsers(data);
-        } catch (err: any) {
-            setError(err.message || 'Failed to fetch users');
+        } catch (err) {
             setUsers([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDeleteUser = async (userId: string) => {
+    const handleDeleteUser = async (userId: string): Promise<void> => {
+        if (!userId) return;
+
         try {
             const token = getAccessToken();
-            if (!token) throw new Error('No token');
+            if (!token) return;
+
             await deleteUser(userId, token);
             setUsers(prevUsers => prevUsers.filter(user => user._id !== userId));
-        } catch (err: any) {
-            setError(err.message || 'Failed to delete user');
+        } catch (err) {
+            // Error will be visible in network panel
         }
+    };
+
+    const handleCreateUser = async (userData: CreateUserData): Promise<User> => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No token');
+
+        const newUser = await createUser(userData, token);
+        setUsers(prevUsers => [...prevUsers, newUser]);
+        return newUser;
     };
 
     useEffect(() => {
@@ -50,8 +66,8 @@ export const useUsers = () => {
     return {
         users,
         loading,
-        error,
         fetchUsers,
         deleteUser: handleDeleteUser,
+        createUser: handleCreateUser,
     };
 };
