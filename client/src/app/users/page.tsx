@@ -7,6 +7,7 @@ import ButtonDefault from '@/components/Buttons/ButtonDefault';
 import DelModal from '@/components/ModalWindows/DelModal';
 import ModalWindowDefault from '@/components/ModalWindows/ModalWindowDefault';
 import CreateUserForm, { CreateUserData } from '@/components/Forms/CreateUserForm';
+import AlertDefault from '@/components/Alert/AlertDefault';
 import { useUsers } from '@/hooks/useUsers';
 import { User } from '@/utils/api';
 
@@ -27,8 +28,9 @@ const UsersPage = () => {
                 setDeleteLoading(true);
                 await deleteUser(deleteConfirm);
                 setDeleteConfirm(null);
+                AlertDefault.success('User deleted successfully');
             } catch (err) {
-                // Error visible in network panel
+                AlertDefault.error('Failed to delete user');
             } finally {
                 setDeleteLoading(false);
             }
@@ -44,8 +46,9 @@ const UsersPage = () => {
             setCreateLoading(true);
             await createUser(userData);
             setShowCreateModal(false);
+            AlertDefault.success(`User "${userData.firstName} ${userData.lastName}" created successfully`);
         } catch (err) {
-            // Error visible in network panel
+            AlertDefault.error('Failed to create user');
         } finally {
             setCreateLoading(false);
         }

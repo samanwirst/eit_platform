@@ -125,7 +125,7 @@ export const getUsers = (token: string) =>
     api.get<User[]>("/users", { token });
 
 export const deleteUser = (id: string, token: string) =>
-    api.del<{ success: boolean }>(`/users/${id}`, { token });
+    api.del<{ success: boolean }>(`/user/${id}`, { token });
 
 // ========== FOLDERS ==========
 export const createFolder = (data: any, token: string) =>

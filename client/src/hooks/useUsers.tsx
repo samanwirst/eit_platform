@@ -55,8 +55,18 @@ export const useUsers = (): UseUsersReturn => {
         if (!token) throw new Error('No token');
 
         const newUser = await createUser(userData, token);
-        setUsers(prevUsers => [...prevUsers, newUser]);
-        return newUser;
+        
+        // Ensure the new user has all required fields
+        const userToAdd: User = {
+            _id: newUser._id || (newUser as any).id || String(Date.now()),
+            firstName: newUser.firstName || userData.firstName,
+            lastName: newUser.lastName || userData.lastName,
+            phoneNumber: newUser.phoneNumber || userData.phoneNumber,
+            role: newUser.role || userData.role
+        };
+        
+        setUsers(prevUsers => [...prevUsers, userToAdd]);
+        return userToAdd;
     };
 
     useEffect(() => {
