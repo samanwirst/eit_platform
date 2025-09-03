@@ -7,6 +7,7 @@ import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutl
 interface BaseSidebarItem {
     label: string;
     currentPath: string;
+    icon?: React.ComponentType<any>;
 }
 
 interface LinkItem extends BaseSidebarItem {
@@ -83,7 +84,8 @@ const SidebarItem = (props: SidebarItemProps) => {
                 : "hover:text-black"
                 }`}
         >
-            <Link href={props.route} className="block py-2 text-sm ml-4">
+            <Link href={props.route} className="block py-2 text-sm ml-4 flex items-center">
+                {props.icon && <props.icon className="mr-2" fontSize="small" />}
                 {props.label}
             </Link>
         </li>

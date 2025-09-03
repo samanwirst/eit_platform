@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import SidebarItem from "./SidebarItem";
 import Link from "next/link";
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 
 const Sidebar = () => {
     const pathname = usePathname();

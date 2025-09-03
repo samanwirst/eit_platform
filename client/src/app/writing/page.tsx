@@ -1,110 +1,68 @@
 'use client';
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
-import TableDefault from '@/components/Tables/TableDefault';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
 const WritingPage = () => {
     const router = useRouter();
 
-    // Writing templates data
-    const writingColumns = [
-        { key: 'id', label: 'ID' },
-        { key: 'title', label: 'Title' },
-        { key: 'type', label: 'Type' },
-        { key: 'wordCount', label: 'Word Count' },
-        { key: 'difficulty', label: 'Difficulty' },
-        { key: 'status', label: 'Status' },
-        { 
-            key: 'actions', 
-            label: 'Actions',
-            render: (value: any, row: any) => (
-                <div className="flex space-x-2">
-                    <ButtonDefault 
-                        label="Start"
-                        onClick={() => router.push(`/writing/task/${row.id}`)}
-                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                    />
-                    <ButtonDefault 
-                        label="Preview"
-                        onClick={() => console.log('Preview writing:', row.id)}
-                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                    />
-                </div>
-            )
-        }
-    ];
-
-    const writingRows = [
-        { 
-            id: 1, 
-            title: 'Essay Writing Practice', 
-            type: 'Academic Essay', 
-            wordCount: '500-800',
-            difficulty: 'Intermediate',
-            status: 'Active'
-        },
-        { 
-            id: 2, 
-            title: 'Business Letter Writing', 
-            type: 'Business Communication', 
-            wordCount: '200-400',
-            difficulty: 'Advanced',
-            status: 'Active'
-        },
-        { 
-            id: 3, 
-            title: 'Creative Story Writing', 
-            type: 'Creative Writing', 
-            wordCount: '300-600',
-            difficulty: 'Beginner',
-            status: 'Active'
-        },
-        { 
-            id: 4, 
-            title: 'Research Paper Outline', 
-            type: 'Research Writing', 
-            wordCount: '1000-1500',
-            difficulty: 'Advanced',
-            status: 'Active'
-        },
-        { 
-            id: 5, 
-            title: 'Email Writing Skills', 
-            type: 'Professional Email', 
-            wordCount: '150-300',
-            difficulty: 'Intermediate',
-            status: 'Active'
-        }
-    ];
+    const handleTaskClick = (taskNum: number) => {
+        router.push(`/writing/task/${taskNum}`);
+    };
 
     return (
         <div className="container mx-auto p-4">
             <Breadcrumb />
-            <h1 className="text-2xl font-bold mb-4">Writing Templates</h1>
-            <p className="text-gray-700 mb-6">Choose a writing template to improve your composition skills</p>
-            
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-gray-800">Available Writing Templates</h2>
-                        <ButtonDefault 
-                            label="Create New Template"
-                            onClick={() => console.log('Create new writing template')}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                        />
+            <div className="max-w-4xl mx-auto">
+                <h1 className="text-2xl font-bold mb-6">Writing Test Creator</h1>
+                <p className="text-gray-700 mb-6">Create writing tasks for your IELTS mock test</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Task 1 */}
+                    <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="text-center">
+                            <div className="text-4xl mb-4">✍️</div>
+                            <h2 className="text-xl font-semibold mb-2">Task 1</h2>
+                            <p className="text-gray-600 mb-4">Create the first writing task (usually descriptive)</p>
+                            <ButtonDefault
+                                label="Create Task 1"
+                                onClick={() => handleTaskClick(1)}
+                                color="blue"
+                                className="w-full"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Task 2 */}
+                    <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="text-center">
+                            <div className="text-4xl mb-4">📝</div>
+                            <h2 className="text-xl font-semibold mb-2">Task 2</h2>
+                            <p className="text-gray-600 mb-4">Create the second writing task (usually essay)</p>
+                            <ButtonDefault
+                                label="Create Task 2"
+                                onClick={() => handleTaskClick(2)}
+                                color="blue"
+                                className="w-full"
+                            />
+                        </div>
                     </div>
                 </div>
-                
-                <TableDefault 
-                    columns={writingColumns} 
-                    rows={writingRows}
-                    className="rounded-b-lg"
-                />
+
+                <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-green-800 mb-2">How it works:</h3>
+                    <ul className="text-green-700 space-y-1">
+                        <li>• Click on any task to create content</li>
+                        <li>• Each task has its own rich text editor</li>
+                        <li>• Upload images for each task</li>
+                        <li>• All tasks will be available in the Mock Assembler</li>
+                    </ul>
+                </div>
             </div>
         </div>
     );
-}
+};
 
 export default WritingPage;

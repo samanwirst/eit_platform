@@ -153,7 +153,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
   return (
     <div
       ref={editorRef}
-      className="h-80 border border-gray-300 rounded p-2"
+      className="border border-gray-300 rounded p-2 overflow-y-auto"
+      style={{ minHeight: '500px' }}
     />
   );
 });
