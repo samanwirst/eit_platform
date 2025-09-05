@@ -20,7 +20,6 @@ const ReadingPage = () => {
                 <p className="text-gray-700 mb-6">Create reading paragraphs for your IELTS mock test</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Section 1 */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-center">
                             <div className="text-4xl mb-4">📖</div>
@@ -35,7 +34,6 @@ const ReadingPage = () => {
                         </div>
                     </div>
 
-                    {/* Section 2 */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-center">
                             <div className="text-4xl mb-4">📚</div>
@@ -50,7 +48,6 @@ const ReadingPage = () => {
                         </div>
                     </div>
 
-                    {/* Section 3 */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-center">
                             <div className="text-4xl mb-4">📝</div>

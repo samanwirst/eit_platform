@@ -4,18 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import InputDefault from '@/components/Inputs/InputDefault';
-import DragAndDropUpload from '@/components/Inputs/DragAndDropUpload';
+import ImageUpload from '@/components/Inputs/ImageUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 import ModalWindowDefault from '@/components/ModalWindows/ModalWindowDefault';
 
 interface ListeningData {
     title: string;
     audioFile: File | null;
+    coverImage: File | null;
     sections: Array<{
         id: string;
-        title: string;
         content: string;
-        images: File[];
     }>;
     createdAt: string;
 }
@@ -147,7 +146,74 @@ const SubmissionPage = () => {
 
         setIsSubmitting(true);
         try {
-            // Download JSON files
+            const mockStructure = {
+                _id: `mock_${Date.now()}`,
+                title: mockData.title,
+                reading: {
+                    sections: {
+                        one: mockData.readingParagraphs[0] ? {
+                            title: mockData.readingParagraphs[0].title,
+                            content: mockData.readingParagraphs[0].content,
+                            files: mockData.readingParagraphs[0].images.map(() => `file_${Date.now()}_${Math.random()}`)
+                        } : {
+                            title: "Something will be here.",
+                            content: "Something will be here.",
+                            files: []
+                        },
+                        two: mockData.readingParagraphs[1] ? {
+                            title: mockData.readingParagraphs[1].title,
+                            content: mockData.readingParagraphs[1].content,
+                            files: mockData.readingParagraphs[1].images.map(() => `file_${Date.now()}_${Math.random()}`)
+                        } : {
+                            title: "Something will be here.",
+                            content: "Something will be here.",
+                            files: []
+                        },
+                        three: mockData.readingParagraphs[2] ? {
+                            title: mockData.readingParagraphs[2].title,
+                            content: mockData.readingParagraphs[2].content,
+                            files: mockData.readingParagraphs[2].images.map(() => `file_${Date.now()}_${Math.random()}`)
+                        } : {
+                            title: "Something will be here.",
+                            content: "Something will be here.",
+                            files: []
+                        },
+                        four: {
+                            title: "Something will be here.",
+                            content: "Something will be here.",
+                            files: []
+                        }
+                    }
+                },
+                listening: {
+                    content: mockData.listeningData ? mockData.listeningData.sections.map(s => s.content).join('\n') : "Something will be here.",
+                    files: mockData.listeningData && mockData.listeningData.audioFile ? [`audio_${Date.now()}`] : []
+                },
+                writing: {
+                    sections: {
+                        one: mockData.writingTasks[0] ? {
+                            title: mockData.writingTasks[0].title,
+                            content: mockData.writingTasks[0].content,
+                            files: mockData.writingTasks[0].images.map(() => `file_${Date.now()}_${Math.random()}`)
+                        } : {
+                            title: "Something will be here.",
+                            content: "Something will be here.",
+                            files: []
+                        },
+                        two: mockData.writingTasks[1] ? {
+                            title: mockData.writingTasks[1].title,
+                            content: mockData.writingTasks[1].content,
+                            files: mockData.writingTasks[1].images.map(() => `file_${Date.now()}_${Math.random()}`)
+                        } : {
+                            title: "Something will be here.",
+                            content: "Something will be here.",
+                            files: []
+                        }
+                    }
+                },
+                __v: 0
+            };
+
             const downloadJSON = (data: any, filename: string) => {
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -160,19 +226,7 @@ const SubmissionPage = () => {
                 URL.revokeObjectURL(url);
             };
 
-            // Download complete mock
-            downloadJSON(mockData, `${mockData.title.replace(/[^a-zA-Z0-9]/g, '_')}_complete_mock.json`);
-
-            // Download individual sections if they exist
-            if (mockData.listeningData) {
-                downloadJSON(mockData.listeningData, `${mockData.title.replace(/[^a-zA-Z0-9]/g, '_')}_listening.json`);
-            }
-            if (mockData.readingParagraphs.length > 0) {
-                downloadJSON(mockData.readingParagraphs, `${mockData.title.replace(/[^a-zA-Z0-9]/g, '_')}_reading.json`);
-            }
-            if (mockData.writingTasks.length > 0) {
-                downloadJSON(mockData.writingTasks, `${mockData.title.replace(/[^a-zA-Z0-9]/g, '_')}_writing.json`);
-            }
+            downloadJSON(mockStructure, `${mockData.title.replace(/[^a-zA-Z0-9]/g, '_')}_mock.json`);
 
             setShowSuccessModal(true);
         } catch (error) {
@@ -192,7 +246,6 @@ const SubmissionPage = () => {
                 <p className="text-gray-700 mb-6">Select content from your created sections to assemble an IELTS mock test</p>
 
                 <div className="space-y-6">
-                    {/* General Information */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-semibold mb-4">General Information</h2>
                         
@@ -219,17 +272,14 @@ const SubmissionPage = () => {
 
                         <div>
                             <label className="block text-sm font-medium mb-2">Cover Image</label>
-                            <DragAndDropUpload
+                            <ImageUpload
                                 onFilesSelected={(files) => setMockData(prev => ({ ...prev, coverImage: files[0] || null }))}
                                 multiple={false}
                                 maxFiles={1}
-                                placeholder="Drag & drop cover image here"
-                                accept="image/*"
                             />
                         </div>
                     </div>
 
-                    {/* Listening Section */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-semibold mb-4">Listening Section</h2>
                         
@@ -273,7 +323,6 @@ const SubmissionPage = () => {
                         )}
                     </div>
 
-                    {/* Reading Paragraphs */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-semibold mb-4">Reading Paragraphs</h2>
                         
@@ -324,7 +373,6 @@ const SubmissionPage = () => {
                         )}
                     </div>
 
-                    {/* Writing Tasks */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-semibold mb-4">Writing Tasks</h2>
                         
@@ -375,7 +423,6 @@ const SubmissionPage = () => {
                         )}
                     </div>
 
-                    {/* Summary */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-semibold mb-4">Mock Summary</h2>
                         
@@ -418,7 +465,6 @@ const SubmissionPage = () => {
                 </div>
             </div>
 
-            {/* Success Modal */}
             <ModalWindowDefault
                 isOpen={showSuccessModal}
                 onClose={() => {

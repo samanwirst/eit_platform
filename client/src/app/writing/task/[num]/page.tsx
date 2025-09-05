@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import RichTextEditor, { RichTextEditorHandle } from '@/components/Editor/RichTextEditor';
 import InputDefault from '@/components/Inputs/InputDefault';
-import DragAndDropUpload from '@/components/Inputs/DragAndDropUpload';
+import ImageUpload from '@/components/Inputs/ImageUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
 interface WritingTask {
@@ -125,12 +125,10 @@ const WritingTaskPage = () => {
                     {taskNum !== '2' && (
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-2">Images</label>
-                            <DragAndDropUpload
+                            <ImageUpload
                                 onFilesSelected={(files) => setTask(prev => ({ ...prev, images: files }))}
                                 multiple={true}
                                 maxFiles={5}
-                                placeholder="Drag & drop images here"
-                                accept="image/*"
                             />
                         </div>
                     )}

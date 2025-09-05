@@ -51,15 +51,17 @@ const DragAndDropUpload: React.FC<DragAndDropUploadProps> = ({
 
   return (
     <div
-      className={`border-2 flex border-dashed rounded-md p-4 text-center transition-colors cursor-pointer w-full ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+      className={`border-2 border-dashed rounded-md p-4 text-center transition-colors cursor-pointer w-full ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
         } ${className}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => document.getElementById("fileInput")?.click()}
     >
-      <PhotoOutlinedIcon/>
-      <p className="text-sm text-gray-600">{placeholder}</p>
+      <div className="flex flex-col items-center space-y-2">
+        <PhotoOutlinedIcon className="text-gray-400"/>
+        <p className="text-sm text-gray-600">{placeholder}</p>
+      </div>
       <input
         id="fileInput"
         type="file"

@@ -20,7 +20,6 @@ const WritingPage = () => {
                 <p className="text-gray-700 mb-6">Create writing tasks for your IELTS mock test</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Task 1 */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-center">
                             <div className="text-4xl mb-4">✍️</div>
@@ -35,7 +34,6 @@ const WritingPage = () => {
                         </div>
                     </div>
 
-                    {/* Task 2 */}
                     <div className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-center">
                             <div className="text-4xl mb-4">📝</div>

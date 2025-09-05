@@ -6,13 +6,14 @@ import { useParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import RichTextEditor, { RichTextEditorHandle } from '@/components/Editor/RichTextEditor';
 import InputDefault from '@/components/Inputs/InputDefault';
-import DragAndDropUpload from '@/components/Inputs/DragAndDropUpload';
+import ImageUpload from '@/components/Inputs/ImageUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
 interface ReadingParagraph {
     id: string;
     title: string;
     content: string;
+    images: File[];
     createdAt: string;
 }
 
@@ -25,6 +26,7 @@ const ReadingSectionPage = () => {
         id: sectionNum,
         title: '',
         content: '',
+        images: [],
         createdAt: new Date().toISOString()
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,6 +120,15 @@ const ReadingSectionPage = () => {
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-2">Content</label>
                         <RichTextEditor ref={editorRef} />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">Images</label>
+                        <ImageUpload
+                            onFilesSelected={(files) => setParagraph(prev => ({ ...prev, images: files }))}
+                            multiple={true}
+                            maxFiles={5}
+                        />
                     </div>
 
                     <div className="flex space-x-4">
