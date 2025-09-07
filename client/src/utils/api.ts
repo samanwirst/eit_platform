@@ -31,12 +31,25 @@ async function request<T>(
     const fetchOptions: RequestInit = {
         method,
         headers: {
-            'Content-Type': 'application/json',
             ...headers,
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
-        ...(body ? { body: JSON.stringify(body) } : {}),
     };
+
+    // Handle FormData vs JSON body
+    if (body) {
+        if (body instanceof FormData) {
+            // Don't set Content-Type for FormData, let browser set it with boundary
+            fetchOptions.body = body;
+        } else {
+            // Set Content-Type for JSON and stringify
+            fetchOptions.headers = {
+                'Content-Type': 'application/json',
+                ...fetchOptions.headers,
+            };
+            fetchOptions.body = JSON.stringify(body);
+        }
+    }
 
     const response = await fetch(url, fetchOptions);
     const text = await response.text();
@@ -144,11 +157,12 @@ export const joinFolder = (id: number, code: string, token: string) =>
     api.post(`/folders/${id}/join/`, { code }, { token });
 
 // ========== TESTS ==========
-export const createTest = (data: FormData) =>
-    request("/tests/", {
+export const createTest = (data: FormData, token: string) =>
+    request("/tests", {
         method: "POST",
         body: data,
-        headers: {}
+        headers: {},
+        token
     });
 
 export const getTests = (token: string) =>

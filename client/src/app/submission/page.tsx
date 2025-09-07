@@ -4,14 +4,26 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import InputDefault from '@/components/Inputs/InputDefault';
-import ImageUpload from '@/components/Inputs/ImageUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 import ModalWindowDefault from '@/components/ModalWindows/ModalWindowDefault';
+import { createTest } from '@/utils/api';
+import { getAccessToken } from '@/lib/auth';
 
 interface ListeningData {
+    id: string;
     title: string;
-    audioFile: File | null;
-    coverImage: File | null;
+    audioFile: {
+        id: string;
+        name: string;
+        type: string;
+        size: number;
+    } | null;
+    coverImage: {
+        id: string;
+        name: string;
+        type: string;
+        size: number;
+    } | null;
     sections: Array<{
         id: string;
         content: string;
@@ -37,9 +49,17 @@ interface WritingTask {
 
 interface MockData {
     title: string;
-    description: string;
-    coverImage: File | null;
-    listeningData: ListeningData | null;
+    listeningData: {
+        id: string;
+        title: string;
+        audioFile: File | null;
+        coverImage: File | null;
+        sections: Array<{
+            id: string;
+            content: string;
+        }>;
+        createdAt: string;
+    } | null;
     readingParagraphs: ReadingParagraph[];
     writingTasks: WritingTask[];
 }
@@ -50,42 +70,113 @@ const SubmissionPage = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     
     // Available content from other pages
-    const [availableListeningData, setAvailableListeningData] = useState<ListeningData | null>(null);
+    const [availableListeningTests, setAvailableListeningTests] = useState<ListeningData[]>([]);
     const [availableReadingParagraphs, setAvailableReadingParagraphs] = useState<ReadingParagraph[]>([]);
     const [availableWritingTasks, setAvailableWritingTasks] = useState<WritingTask[]>([]);
 
     // Selected content for the mock
     const [mockData, setMockData] = useState<MockData>({
         title: '',
-        description: '',
-        coverImage: null,
         listeningData: null,
         readingParagraphs: [],
         writingTasks: [],
     });
 
+    // Helper function to get files from IndexedDB for reading/writing
+    const getFilesFromIndexedDB = async (fileIds: string[], dbName: string): Promise<File[]> => {
+        const files: File[] = [];
+        
+        for (const fileId of fileIds) {
+            try {
+                const file = await new Promise<File | null>((resolve, reject) => {
+                    const request = indexedDB.open(dbName, 1);
+                    
+                    request.onerror = () => reject(request.error);
+                    
+                    request.onsuccess = (event) => {
+                        const db = (event.target as IDBOpenDBRequest).result;
+                        const transaction = db.transaction(['files'], 'readonly');
+                        const store = transaction.objectStore('files');
+                        
+                        const getRequest = store.get(fileId);
+                        getRequest.onsuccess = () => {
+                            const result = getRequest.result;
+                            resolve(result ? result.file : null);
+                        };
+                        getRequest.onerror = () => reject(getRequest.error);
+                    };
+                });
+                
+                if (file) {
+                    files.push(file);
+                }
+            } catch (error) {
+                console.error('Error loading file:', error);
+            }
+        }
+        
+        return files;
+    };
+
+    // Helper function to get file from IndexedDB
+    const getFileFromIndexedDB = async (fileId: string): Promise<File | null> => {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('ListeningFiles', 1);
+            
+            request.onerror = () => reject(request.error);
+            
+            request.onsuccess = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                const transaction = db.transaction(['files'], 'readonly');
+                const store = transaction.objectStore('files');
+                
+                const getRequest = store.get(fileId);
+                getRequest.onsuccess = () => {
+                    const result = getRequest.result;
+                    resolve(result ? result.file : null);
+                };
+                getRequest.onerror = () => reject(getRequest.error);
+            };
+        });
+    };
+
     // Load available content from localStorage
     useEffect(() => {
-        const savedListeningData = localStorage.getItem('listeningData');
+        const savedListeningTests = localStorage.getItem('listeningTests');
         const savedReadingParagraphs = localStorage.getItem('readingParagraphs');
         const savedWritingTasks = localStorage.getItem('writingTasks');
 
-        if (savedListeningData) {
-            setAvailableListeningData(JSON.parse(savedListeningData));
+        if (savedListeningTests) {
+            const tests = JSON.parse(savedListeningTests);
+            // For now, just set the tests without files - we'll load files when needed
+            setAvailableListeningTests(tests);
         }
         if (savedReadingParagraphs) {
-            setAvailableReadingParagraphs(JSON.parse(savedReadingParagraphs));
+            const paragraphs = JSON.parse(savedReadingParagraphs);
+            setAvailableReadingParagraphs(paragraphs);
         }
         if (savedWritingTasks) {
-            setAvailableWritingTasks(JSON.parse(savedWritingTasks));
+            const tasks = JSON.parse(savedWritingTasks);
+            setAvailableWritingTasks(tasks);
         }
     }, []);
 
-    const handleListeningSelect = () => {
-        if (availableListeningData) {
+    const handleListeningSelect = async (testId: string) => {
+        const test = availableListeningTests.find(t => t.id === testId);
+        if (test) {
+            // Load files from IndexedDB
+            const audioFile = test.audioFile?.id ? await getFileFromIndexedDB(test.audioFile.id) : null;
+            const coverImage = test.coverImage?.id ? await getFileFromIndexedDB(test.coverImage.id) : null;
+            
+            const testWithFiles = {
+                ...test,
+                audioFile,
+                coverImage
+            };
+            
             setMockData(prev => ({
                 ...prev,
-                listeningData: availableListeningData
+                listeningData: testWithFiles
             }));
         }
     };
@@ -100,12 +191,21 @@ const SubmissionPage = () => {
         }
     };
 
-    const handleWritingTaskSelect = (taskId: string) => {
+    const handleWritingTaskSelect = async (taskId: string) => {
         const task = availableWritingTasks.find(t => t.id === taskId);
         if (task) {
+            // Load images from IndexedDB
+            const imageIds = task.images.map((img: any) => img.id).filter(Boolean);
+            const images = imageIds.length > 0 ? await getFilesFromIndexedDB(imageIds, 'WritingFiles') : [];
+            
+            const taskWithFiles = {
+                ...task,
+                images
+            };
+            
             setMockData(prev => ({
                 ...prev,
-                writingTasks: [...prev.writingTasks, task]
+                writingTasks: [...prev.writingTasks, taskWithFiles]
             }));
         }
     };
@@ -144,94 +244,93 @@ const SubmissionPage = () => {
             return;
         }
 
+        const token = getAccessToken();
+        if (!token) {
+            alert('Please login first');
+            router.push('/login');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
-            const mockStructure = {
-                _id: `mock_${Date.now()}`,
-                title: mockData.title,
-                reading: {
-                    sections: {
-                        one: mockData.readingParagraphs[0] ? {
-                            title: mockData.readingParagraphs[0].title,
-                            content: mockData.readingParagraphs[0].content,
-                            files: mockData.readingParagraphs[0].images.map(() => `file_${Date.now()}_${Math.random()}`)
-                        } : {
-                            title: "Something will be here.",
-                            content: "Something will be here.",
-                            files: []
-                        },
-                        two: mockData.readingParagraphs[1] ? {
-                            title: mockData.readingParagraphs[1].title,
-                            content: mockData.readingParagraphs[1].content,
-                            files: mockData.readingParagraphs[1].images.map(() => `file_${Date.now()}_${Math.random()}`)
-                        } : {
-                            title: "Something will be here.",
-                            content: "Something will be here.",
-                            files: []
-                        },
-                        three: mockData.readingParagraphs[2] ? {
-                            title: mockData.readingParagraphs[2].title,
-                            content: mockData.readingParagraphs[2].content,
-                            files: mockData.readingParagraphs[2].images.map(() => `file_${Date.now()}_${Math.random()}`)
-                        } : {
-                            title: "Something will be here.",
-                            content: "Something will be here.",
-                            files: []
-                        },
-                        four: {
-                            title: "Something will be here.",
-                            content: "Something will be here.",
-                            files: []
-                        }
+            // Create FormData for file uploads
+            const formData = new FormData();
+            formData.append('title', mockData.title);
+
+            // Process reading sections
+            const readingSections = ['one', 'two', 'three', 'four'];
+            readingSections.forEach((section, index) => {
+                const paragraph = mockData.readingParagraphs[index];
+                if (paragraph) {
+                    formData.append(`reading.sections.${section}.title`, paragraph.title);
+                    // Convert JSON content to plain text if needed
+                    const content = typeof paragraph.content === 'string' 
+                        ? paragraph.content 
+                        : JSON.stringify(paragraph.content);
+                    formData.append(`reading.sections.${section}.content`, content);
+                    // Reading sections don't have files, but API expects files[] field
+                    // We'll skip sending files for reading sections as they're not needed
+                } else {
+                    formData.append(`reading.sections.${section}.title`, "Something will be here.");
+                    formData.append(`reading.sections.${section}.content`, "Something will be here.");
+                }
+            });
+
+            // Process listening
+            if (mockData.listeningData) {
+                // Convert JSON content to plain text if needed
+                const content = mockData.listeningData.sections.map(s => {
+                    return typeof s.content === 'string' ? s.content : JSON.stringify(s.content);
+                }).join('\n');
+                formData.append('listening.content', content);
+                // Add audio file if it's a proper File object
+                if (mockData.listeningData.audioFile && mockData.listeningData.audioFile instanceof File) {
+                    formData.append('listening.files[]', mockData.listeningData.audioFile);
+                }
+                // Add cover image if it's a proper File object
+                if (mockData.listeningData.coverImage && mockData.listeningData.coverImage instanceof File) {
+                    formData.append('listening.files[]', mockData.listeningData.coverImage);
+                }
+            } else {
+                formData.append('listening.content', "Something will be here.");
+            }
+
+            // Process writing sections
+            const writingSections = ['one', 'two'];
+            writingSections.forEach((section, index) => {
+                const task = mockData.writingTasks[index];
+                if (task) {
+                    formData.append(`writing.sections.${section}.title`, task.title);
+                    // Convert JSON content to plain text if needed
+                    const content = typeof task.content === 'string' 
+                        ? task.content 
+                        : JSON.stringify(task.content);
+                    formData.append(`writing.sections.${section}.content`, content);
+                    // Add files if any - ensure they are File objects
+                    if (task.images && Array.isArray(task.images)) {
+                        task.images.forEach(file => {
+                            if (file instanceof File) {
+                                formData.append(`writing.sections.${section}.files[]`, file);
+                            }
+                        });
                     }
-                },
-                listening: {
-                    content: mockData.listeningData ? mockData.listeningData.sections.map(s => s.content).join('\n') : "Something will be here.",
-                    files: mockData.listeningData && mockData.listeningData.audioFile ? [`audio_${Date.now()}`] : []
-                },
-                writing: {
-                    sections: {
-                        one: mockData.writingTasks[0] ? {
-                            title: mockData.writingTasks[0].title,
-                            content: mockData.writingTasks[0].content,
-                            files: mockData.writingTasks[0].images.map(() => `file_${Date.now()}_${Math.random()}`)
-                        } : {
-                            title: "Something will be here.",
-                            content: "Something will be here.",
-                            files: []
-                        },
-                        two: mockData.writingTasks[1] ? {
-                            title: mockData.writingTasks[1].title,
-                            content: mockData.writingTasks[1].content,
-                            files: mockData.writingTasks[1].images.map(() => `file_${Date.now()}_${Math.random()}`)
-                        } : {
-                            title: "Something will be here.",
-                            content: "Something will be here.",
-                            files: []
-                        }
-                    }
-                },
-                __v: 0
-            };
+                } else {
+                    formData.append(`writing.sections.${section}.title`, "Something will be here.");
+                    formData.append(`writing.sections.${section}.content`, "Something will be here.");
+                }
+            });
 
-            const downloadJSON = (data: any, filename: string) => {
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            };
-
-            downloadJSON(mockStructure, `${mockData.title.replace(/[^a-zA-Z0-9]/g, '_')}_mock.json`);
-
-            setShowSuccessModal(true);
+            // Send to backend
+            const response = await createTest(formData, token) as { ok: boolean; message?: string };
+            
+            if (response.ok) {
+                setShowSuccessModal(true);
+            } else {
+                throw new Error('Failed to create test');
+            }
         } catch (error) {
-            console.error('Error creating mock:', error);
-            alert('Error creating mock. Please try again.');
+            console.error('Error creating test:', error);
+            alert('Error creating test. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -257,68 +356,55 @@ const SubmissionPage = () => {
                             value={mockData.title}
                             onChange={e => setMockData(prev => ({ ...prev, title: e.target.value }))}
                             required
-                            customClasses="mb-4"
+                            customClasses="mb-4 cursor-pointer"
                         />
 
-                        <InputDefault
-                            label="Description"
-                            name="description"
-                            type="text"
-                            placeholder="Enter mock test description"
-                            value={mockData.description}
-                            onChange={e => setMockData(prev => ({ ...prev, description: e.target.value }))}
-                            customClasses="mb-4"
-                        />
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Cover Image</label>
-                            <ImageUpload
-                                onFilesSelected={(files) => setMockData(prev => ({ ...prev, coverImage: files[0] || null }))}
-                                multiple={false}
-                                maxFiles={1}
-                            />
-                        </div>
                     </div>
 
                     <div className="bg-white border rounded-lg p-6 shadow-sm">
                         <h2 className="text-xl font-semibold mb-4">Listening Section</h2>
                         
-                        {availableListeningData ? (
+                        {availableListeningTests.length > 0 ? (
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Available Listening Test:</span>
-                                    <ButtonDefault
-                                        label="Select This Listening Test"
-                                        onClick={handleListeningSelect}
-                                        color="blue"
-                                        className="px-4 py-2"
-                                    />
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Select Listening Test</label>
+                                    <select 
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                handleListeningSelect(e.target.value);
+                                                e.target.value = '';
+                                            }
+                                        }}
+                                    >
+                                        <option value="">Choose a listening test...</option>
+                                        {availableListeningTests.map(test => (
+                                            <option key={test.id} value={test.id}>
+                                                {test.title} ({new Date(test.createdAt).toLocaleDateString()})
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <div className="p-3 bg-gray-50 rounded">
-                                    <p><strong>Title:</strong> {availableListeningData.title}</p>
-                                    <p><strong>Audio:</strong> {availableListeningData.audioFile ? '✅' : '❌'}</p>
-                                    <p><strong>Sections:</strong> {availableListeningData.sections.length}</p>
-                                </div>
+
+                                {mockData.listeningData && (
+                                    <div className="mt-4 p-3 bg-blue-50 rounded">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-blue-800">Selected Listening Test:</span>
+                                            <ButtonDefault
+                                                label="Remove"
+                                                onClick={removeListeningData}
+                                                color="red"
+                                                className="px-2 py-1 text-xs"
+                                            />
+                                        </div>
+                                        <p className="text-blue-700">{mockData.listeningData.title}</p>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="text-center py-4 text-gray-500">
-                                <p>No listening test created yet.</p>
-                                <p className="text-sm mt-2">Go to Listening page to create a test first.</p>
-                            </div>
-                        )}
-
-                        {mockData.listeningData && (
-                            <div className="mt-4 p-3 bg-blue-50 rounded">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium text-blue-800">Selected Listening Test:</span>
-                                    <ButtonDefault
-                                        label="Remove"
-                                        onClick={removeListeningData}
-                                        color="red"
-                                        className="px-2 py-1 text-xs"
-                                    />
-                                </div>
-                                <p className="text-blue-700">{mockData.listeningData.title}</p>
+                                <p>No listening tests created yet.</p>
+                                <p className="text-sm mt-2">Go to Listening page to create tests first.</p>
                             </div>
                         )}
                     </div>
@@ -331,7 +417,7 @@ const SubmissionPage = () => {
                                 <div>
                                     <label className="block text-sm font-medium mb-2">Select Reading Paragraphs</label>
                                     <select 
-                                        className="w-full border rounded p-2"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                                         onChange={(e) => {
                                             if (e.target.value) {
                                                 handleReadingParagraphSelect(e.target.value);
@@ -381,7 +467,7 @@ const SubmissionPage = () => {
                                 <div>
                                     <label className="block text-sm font-medium mb-2">Select Writing Tasks</label>
                                     <select 
-                                        className="w-full border rounded p-2"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                                         onChange={(e) => {
                                             if (e.target.value) {
                                                 handleWritingTaskSelect(e.target.value);
@@ -431,10 +517,6 @@ const SubmissionPage = () => {
                                 <label className="text-sm font-medium text-gray-600">Mock Title</label>
                                 <p className="text-lg font-semibold">{mockData.title || 'Not specified'}</p>
                             </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-600">Description</label>
-                                <p className="text-gray-800">{mockData.description || 'No description'}</p>
-                            </div>
                         </div>
 
                         <div className="space-y-3">
@@ -454,11 +536,11 @@ const SubmissionPage = () => {
 
                         <div className="mt-6">
                             <ButtonDefault
-                                label={isSubmitting ? 'Creating Mock...' : 'Create Mock Test'}
+                                label={isSubmitting ? 'Creating Test...' : 'Create Test'}
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
                                 color="green"
-                                className="w-full"
+                                className="w-full cursor-pointer"
                             />
                         </div>
                     </div>
@@ -474,9 +556,9 @@ const SubmissionPage = () => {
                 closeButton={true}
             >
                 <div className="text-center">
-                    <h3 className="text-lg font-semibold text-green-800 mb-2">Mock Created Successfully!</h3>
+                    <h3 className="text-lg font-semibold text-green-800 mb-2">Test Created Successfully!</h3>
                     <p className="text-sm text-gray-700 mb-4">
-                        Your IELTS mock test has been assembled and JSON files have been downloaded.
+                        Your IELTS test has been saved to the database and is ready for use.
                     </p>
                     <ButtonDefault
                         label="Go to Dashboard"

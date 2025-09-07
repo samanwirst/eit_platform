@@ -6,14 +6,12 @@ import { useParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import RichTextEditor, { RichTextEditorHandle } from '@/components/Editor/RichTextEditor';
 import InputDefault from '@/components/Inputs/InputDefault';
-import ImageUpload from '@/components/Inputs/ImageUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
 interface ReadingParagraph {
     id: string;
     title: string;
     content: string;
-    images: File[];
     createdAt: string;
 }
 
@@ -26,14 +24,12 @@ const ReadingSectionPage = () => {
         id: sectionNum,
         title: '',
         content: '',
-        images: [],
         createdAt: new Date().toISOString()
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const editorRef = useRef<RichTextEditorHandle>(null);
 
-    // Load existing data on mount
     useEffect(() => {
         const savedParagraphs = localStorage.getItem('readingParagraphs');
         if (savedParagraphs) {
@@ -62,24 +58,17 @@ const ReadingSectionPage = () => {
             const contentJson = JSON.stringify(delta);
 
             const updatedParagraph: ReadingParagraph = {
-                ...paragraph,
+                id: `reading_${sectionNum}_${Date.now()}`,
+                title: paragraph.title,
                 content: contentJson,
                 createdAt: new Date().toISOString()
             };
 
-            // Get existing paragraphs
             const savedParagraphs = localStorage.getItem('readingParagraphs');
             let paragraphs = savedParagraphs ? JSON.parse(savedParagraphs) : [];
             
-            // Update or add the paragraph
-            const existingIndex = paragraphs.findIndex((p: ReadingParagraph) => p.id === sectionNum);
-            if (existingIndex >= 0) {
-                paragraphs[existingIndex] = updatedParagraph;
-            } else {
-                paragraphs.push(updatedParagraph);
-            }
+            paragraphs.push(updatedParagraph);
 
-            // Save to localStorage
             localStorage.setItem('readingParagraphs', JSON.stringify(paragraphs));
 
             alert('Paragraph saved successfully!');
@@ -117,18 +106,9 @@ const ReadingSectionPage = () => {
                         customClasses="mb-4"
                     />
 
-                    <div className="mb-4">
+                    <div className="mb-4" style={{ minHeight: '500px' }}>
                         <label className="block text-sm font-medium mb-2">Content</label>
                         <RichTextEditor ref={editorRef} />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Images</label>
-                        <ImageUpload
-                            onFilesSelected={(files) => setParagraph(prev => ({ ...prev, images: files }))}
-                            multiple={true}
-                            maxFiles={5}
-                        />
                     </div>
 
                     <div className="flex space-x-4">

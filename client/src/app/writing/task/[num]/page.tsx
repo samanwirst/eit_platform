@@ -13,7 +13,7 @@ interface WritingTask {
     id: string;
     title: string;
     content: string;
-    images: File[];
+    images: any[];
     createdAt: string;
 }
 
@@ -33,7 +33,6 @@ const WritingTaskPage = () => {
 
     const editorRef = useRef<RichTextEditorHandle>(null);
 
-    // Load existing data on mount
     useEffect(() => {
         const savedTasks = localStorage.getItem('writingTasks');
         if (savedTasks) {
@@ -44,6 +43,51 @@ const WritingTaskPage = () => {
             }
         }
     }, [taskNum]);
+
+    const storeFilesInIndexedDB = async (files: File[], taskId: string): Promise<string[]> => {
+        const fileIds: string[] = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileId = `${taskId}_image_${i}`;
+            
+            await new Promise<void>((resolve, reject) => {
+                const request = indexedDB.open('WritingFiles', 1);
+                
+                request.onerror = () => reject(request.error);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = (event.target as IDBOpenDBRequest).result;
+                    if (!db.objectStoreNames.contains('files')) {
+                        db.createObjectStore('files', { keyPath: 'id' });
+                    }
+                };
+                
+                request.onsuccess = (event) => {
+                    const db = (event.target as IDBOpenDBRequest).result;
+                    const transaction = db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    
+                    const fileData = {
+                        id: fileId,
+                        file: file,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    };
+                    
+                    const addRequest = store.add(fileData);
+                    addRequest.onsuccess = () => {
+                        fileIds.push(fileId);
+                        resolve();
+                    };
+                    addRequest.onerror = () => reject(addRequest.error);
+                };
+            });
+        }
+        
+        return fileIds;
+    };
 
     const handleSubmit = async () => {
         if (!editorRef.current) {
@@ -61,25 +105,28 @@ const WritingTaskPage = () => {
             const delta = editorRef.current.getContents();
             const contentJson = JSON.stringify(delta);
 
+            const imageFileIds = task.images.length > 0 
+                ? await storeFilesInIndexedDB(task.images, task.id)
+                : [];
+
             const updatedTask: WritingTask = {
-                ...task,
+                id: `writing_${taskNum}_${Date.now()}`,
+                title: task.title,
                 content: contentJson,
+                images: imageFileIds.map((id, index) => ({
+                    id,
+                    name: task.images[index].name,
+                    type: task.images[index].type,
+                    size: task.images[index].size
+                } as any)),
                 createdAt: new Date().toISOString()
             };
 
-            // Get existing tasks
             const savedTasks = localStorage.getItem('writingTasks');
             let tasks = savedTasks ? JSON.parse(savedTasks) : [];
             
-            // Update or add the task
-            const existingIndex = tasks.findIndex((t: WritingTask) => t.id === taskNum);
-            if (existingIndex >= 0) {
-                tasks[existingIndex] = updatedTask;
-            } else {
-                tasks.push(updatedTask);
-            }
+            tasks.push(updatedTask);
 
-            // Save to localStorage
             localStorage.setItem('writingTasks', JSON.stringify(tasks));
 
             alert('Task saved successfully!');
@@ -122,7 +169,7 @@ const WritingTaskPage = () => {
                         <RichTextEditor ref={editorRef} />
                     </div>
 
-                    {taskNum !== '2' && (
+                    {taskNum === '1' && (
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-2">Images</label>
                             <ImageUpload

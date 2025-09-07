@@ -59,6 +59,61 @@ const ListeningPage = () => {
         }));
     };
 
+    const storeFileInIndexedDB = async (file: File, testId: string, fileType: 'audio' | 'cover'): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('ListeningFiles', 1);
+            
+            request.onerror = () => reject(request.error);
+            
+            request.onupgradeneeded = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains('files')) {
+                    db.createObjectStore('files', { keyPath: 'id' });
+                }
+            };
+            
+            request.onsuccess = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                const transaction = db.transaction(['files'], 'readwrite');
+                const store = transaction.objectStore('files');
+                
+                const fileId = `${testId}_${fileType}`;
+                const fileData = {
+                    id: fileId,
+                    file: file,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                };
+                
+                const addRequest = store.add(fileData);
+                addRequest.onsuccess = () => resolve(fileId);
+                addRequest.onerror = () => reject(addRequest.error);
+            };
+        });
+    };
+
+    const getFileFromIndexedDB = async (fileId: string): Promise<File | null> => {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('ListeningFiles', 1);
+            
+            request.onerror = () => reject(request.error);
+            
+            request.onsuccess = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                const transaction = db.transaction(['files'], 'readonly');
+                const store = transaction.objectStore('files');
+                
+                const getRequest = store.get(fileId);
+                getRequest.onsuccess = () => {
+                    const result = getRequest.result;
+                    resolve(result ? result.file : null);
+                };
+                getRequest.onerror = () => reject(getRequest.error);
+            };
+        });
+    };
+
     const handleSubmit = async () => {
         if (!listeningData.title.trim()) {
             alert('Please enter a listening title');
@@ -72,7 +127,6 @@ const ListeningPage = () => {
 
         setIsSubmitting(true);
         try {
-            // Get content from all editors
             const sectionsWithContent = listeningData.sections.map((section, index) => {
                 const editorContent = editorRefs.current[index]?.getContents();
                 return {
@@ -81,19 +135,49 @@ const ListeningPage = () => {
                 };
             });
 
+            const testId = `listening_${Date.now()}`;
+            const audioFileId = await storeFileInIndexedDB(listeningData.audioFile, testId, 'audio');
+            const coverImageId = listeningData.coverImage ? await storeFileInIndexedDB(listeningData.coverImage, testId, 'cover') : null;
+
             const finalData = {
-                ...listeningData,
+                id: testId,
+                title: listeningData.title,
+                audioFile: {
+                    id: audioFileId,
+                    name: listeningData.audioFile.name,
+                    type: listeningData.audioFile.type,
+                    size: listeningData.audioFile.size
+                },
+                coverImage: listeningData.coverImage ? {
+                    id: coverImageId,
+                    name: listeningData.coverImage.name,
+                    type: listeningData.coverImage.type,
+                    size: listeningData.coverImage.size
+                } : null,
                 sections: sectionsWithContent,
                 createdAt: new Date().toISOString()
             };
 
-            // Save to localStorage
-            localStorage.setItem('listeningData', JSON.stringify(finalData));
+            const existingTests = JSON.parse(localStorage.getItem('listeningTests') || '[]');
+            existingTests.push(finalData);
+            localStorage.setItem('listeningTests', JSON.stringify(existingTests));
 
-            alert('Listening data saved successfully!');
+            alert('Listening test saved successfully!');
+            
+            setListeningData({
+                title: '',
+                audioFile: null,
+                coverImage: null,
+                sections: [
+                    { id: '1', content: '' },
+                    { id: '2', content: '' },
+                    { id: '3', content: '' },
+                    { id: '4', content: '' }
+                ],
+            });
         } catch (err: any) {
             console.error(err);
-            alert('Error saving listening data: ' + err.message);
+            alert('Error saving listening test: ' + err.message);
         } finally {
             setIsSubmitting(false);
         }
