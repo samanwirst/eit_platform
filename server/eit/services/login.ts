@@ -49,7 +49,7 @@ login.post(
       Bun.env.JWT_SECRET
     );
 
-    return c.json({ ok: true, token });
+    return c.json({ ok: true, token: token });
   }
 );
 

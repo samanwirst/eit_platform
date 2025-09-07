@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
+import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import mongoose from 'mongoose';
 import login from './services/login';
@@ -35,6 +36,8 @@ app.onError((err, c) => {
 
   return c.json({ ok: false, message: 'Internal Server Error' }, 500);
 });
+
+app.use('*', cors({ origin: '*', allowHeaders: ['*'], allowMethods: ['*'] }));
 
 app.get('/uploads/:filename', async (c) => {
   const filename = c.req.param('filename');
