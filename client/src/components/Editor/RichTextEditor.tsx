@@ -150,11 +150,28 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
     getContents: () => quillRef.current?.getContents() || { ops: [] },
   }));
 
+  const handleEditorClick = (e: React.MouseEvent) => {
+    if (quillRef.current) {
+      const target = e.target as HTMLElement;
+      const editor = editorRef.current;
+      
+      if (target === editor || target.classList.contains('ql-editor') || target.closest('.ql-editor')) {
+        quillRef.current.focus();
+        
+        if (target === editor || (target.classList.contains('ql-editor') && target.textContent?.trim() === '')) {
+          const length = quillRef.current.getLength();
+          quillRef.current.setSelection(length - 1);
+        }
+      }
+    }
+  };
+
   return (
     <div
       ref={editorRef}
       className="border border-gray-300 rounded p-2 overflow-y-auto"
       style={{ minHeight: '500px' }}
+      onClick={handleEditorClick}
     />
   );
 });
