@@ -7,6 +7,8 @@ const REFRESH_TOKEN_KEY = "refresh";
 
 interface TokenPayload {
   exp: number;
+  userId: string;
+  role: 'admin' | 'user';
   [key: string]: any;
 }
 
@@ -46,4 +48,42 @@ export function isTokenExpired(token: string): boolean {
 export function isAuthenticated(): boolean {
   const token = getAccessToken();
   return !!token && !isTokenExpired(token);
+}
+
+export function getUserRole(): 'admin' | 'user' | null {
+  const token = getAccessToken();
+  if (!token || isTokenExpired(token)) {
+    return null;
+  }
+  
+  try {
+    const payload = jwtDecode<TokenPayload>(token);
+    return payload.role;
+  } catch {
+    return null;
+  }
+}
+
+export function isAdmin(): boolean {
+  return getUserRole() === 'admin';
+}
+
+export function isStudent(): boolean {
+  return getUserRole() === 'user';
+}
+
+export function canAccessPage(pagePath: string): boolean {
+  const role = getUserRole();
+  if (!role) return false;
+  
+  // Admin can access everything
+  if (role === 'admin') return true;
+  
+  // Student can only access dashboard and mock page
+  if (role === 'user') {
+    const allowedPaths = ['/', '/mock'];
+    return allowedPaths.includes(pagePath);
+  }
+  
+  return false;
 }

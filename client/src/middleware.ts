@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
+interface TokenPayload {
+    exp: number;
+    userId: string;
+    role: 'admin' | 'user';
+}
+
 export function middleware(request: NextRequest) {
     const token = request.cookies.get("access")?.value;
 
@@ -9,9 +15,26 @@ export function middleware(request: NextRequest) {
     }
 
     try {
-        const payload: any = jwtDecode(token);
+        const payload = jwtDecode<TokenPayload>(token);
         if (payload.exp * 1000 < Date.now()) {
             return NextResponse.redirect(new URL("/login", request.url));
+        }
+
+        // Role-based access control
+        const pathname = request.nextUrl.pathname;
+        const role = payload.role;
+
+        // Admin can access everything
+        if (role === 'admin') {
+            return NextResponse.next();
+        }
+
+        // Student (user) can only access dashboard and mock page
+        if (role === 'user') {
+            const allowedPaths = ['/', '/mock'];
+            if (!allowedPaths.includes(pathname)) {
+                return NextResponse.redirect(new URL("/", request.url));
+            }
         }
     } catch {
         return NextResponse.redirect(new URL("/login", request.url));

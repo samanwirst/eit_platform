@@ -15,7 +15,7 @@ export interface CreateUserData {
     lastName: string;
     phoneNumber: string;
     password: string;
-    role: 'admin' | 'student';
+    role: 'admin' | 'user';
 }
 
 const CreateUserForm: React.FC<CreateUserFormProps> = ({
@@ -28,7 +28,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
         lastName: '',
         phoneNumber: '998',
         password: '',
-        role: 'student'
+        role: 'user'
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -111,11 +111,11 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
                 </label>
                 <select
                     value={formData.role}
-                    onChange={(e) => handleInputChange('role', e.target.value as 'admin' | 'student')}
+                    onChange={(e) => handleInputChange('role', e.target.value as 'admin' | 'user')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                 >
-                    <option value="student">Student</option>
+                    <option value="user">Student</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>

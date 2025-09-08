@@ -111,7 +111,7 @@ export interface User {
     firstName: string;
     lastName: string;
     phoneNumber: string;
-    role: 'admin' | 'student';
+    role: 'admin' | 'user';
 }
 
 export interface CreateUserData {
@@ -119,7 +119,7 @@ export interface CreateUserData {
     lastName: string;
     phoneNumber: string;
     password: string;
-    role: 'admin' | 'student';
+    role: 'admin' | 'user';
 }
 
 export const createUser = async (data: CreateUserData, token: string): Promise<User> => {
@@ -135,7 +135,7 @@ export const createUser = async (data: CreateUserData, token: string): Promise<U
 };
 
 export const getUsers = (token: string) =>
-    api.get<User[]>("/users", { token });
+    api.get<{ ok: boolean; users: User[] }>("/users", { token });
 
 export const deleteUser = (id: string, token: string) =>
     api.del<{ success: boolean }>(`/user/${id}`, { token });
@@ -217,3 +217,33 @@ export const loginOld = (phone_number: string, password: string) =>
 
 export const refreshToken = (refresh: string) =>
     api.post<{ access: string }>('/token/refresh/', { refresh });
+
+// ========== KEYS ==========
+export interface Key {
+    _id: string;
+    key: string;
+    user: string | {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber: string;
+    };
+    test: string | {
+        _id: string;
+        title: string;
+    };
+}
+
+export interface CreateKeyData {
+    userId: string;
+    testId: string;
+}
+
+export const createKey = (data: CreateKeyData, token: string) =>
+    api.post<{ ok: boolean; key: string }>("/keys", data, { token });
+
+export const getKeys = (token: string) =>
+    api.get<{ ok: boolean; keys: Key[] }>("/keys", { token });
+
+export const deleteKey = (id: string, token: string) =>
+    api.del<{ success: boolean }>(`/key/${id}`, { token });

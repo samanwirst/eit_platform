@@ -84,7 +84,7 @@ const UsersPage = () => {
                                 : 'bg-green-100 text-green-800'
                             }`}
                     >
-                        {value.charAt(0).toUpperCase() + value.slice(1)}
+                        {value === 'admin' ? 'Admin' : 'Student'}
                     </span>
                 );
             }
