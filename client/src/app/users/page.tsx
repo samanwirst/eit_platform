@@ -95,13 +95,6 @@ const UsersPage = () => {
             render: (value: any, row: User) => (
                 <div className="flex space-x-2">
                     <ButtonDefault
-                        label="Edit"
-                        onClick={() => {
-                            // TODO: Implement edit functionality
-                        }}
-                        className="w-30 h-10 px-3 py-1 bg-blue-500 text-white text-md rounded hover:bg-blue-600 transition-colors"
-                    />
-                    <ButtonDefault
                         label="Delete"
                         onClick={() => handleDeleteClick(row._id)}
                         disabled={deleteLoading}
