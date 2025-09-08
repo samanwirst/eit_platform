@@ -65,9 +65,9 @@ const CreateListeningPage = () => {
                     size: file.size
                 };
                 
-                const addRequest = store.add(fileData);
-                addRequest.onsuccess = () => resolve(fileId);
-                addRequest.onerror = () => reject(addRequest.error);
+                const putRequest = store.put(fileData);
+                putRequest.onsuccess = () => resolve(fileId);
+                putRequest.onerror = () => reject(putRequest.error);
             };
         });
     };

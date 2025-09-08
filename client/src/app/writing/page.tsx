@@ -121,7 +121,7 @@ const WritingPage = () => {
             label: 'Images',
             render: (value: any, row: WritingTask) => (
                 <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                    {row.images.length} images
+                    {row.images?.length || 0} images
                 </span>
             ),
         },

@@ -157,6 +157,29 @@ export const joinFolder = (id: number, code: string, token: string) =>
     api.post(`/folders/${id}/join/`, { code }, { token });
 
 // ========== TESTS ==========
+export interface Test {
+    _id: string;
+    title: string;
+    reading: {
+        sections: {
+            one?: { title: string; content: string; files: string[] };
+            two?: { title: string; content: string; files: string[] };
+            three?: { title: string; content: string; files: string[] };
+            four?: { title: string; content: string; files: string[] };
+        };
+    };
+    listening: {
+        content: string;
+        files: string[];
+    };
+    writing: {
+        sections: {
+            one?: { title: string; content: string; files: string[] };
+            two?: { title: string; content: string; files: string[] };
+        };
+    };
+}
+
 export const createTest = (data: FormData, token: string) =>
     request("/tests", {
         method: "POST",
@@ -166,16 +189,10 @@ export const createTest = (data: FormData, token: string) =>
     });
 
 export const getTests = (token: string) =>
-    api.get("/tests/", { token });
+    api.get<{ ok: boolean; tests: Test[] }>("/tests", { token });
 
-export const getTestById = (id: number, token: string) =>
-    api.get(`/tests/${id}/`, { token });
-
-export const updateTest = (id: number, data: any, token: string) =>
-    api.put(`/tests/${id}/`, data, { token });
-
-export const deleteTest = (id: number, token: string) =>
-    api.del(`/tests/${id}/`, { token });
+export const deleteTest = (id: string, token: string) =>
+    api.del(`/test/${id}`, { token });
 
 // ========== SESSIONS ==========
 export const createSession = (data: any, token: string) =>

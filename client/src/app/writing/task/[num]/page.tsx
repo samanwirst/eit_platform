@@ -76,12 +76,12 @@ const WritingTaskPage = () => {
                         size: file.size
                     };
                     
-                    const addRequest = store.add(fileData);
-                    addRequest.onsuccess = () => {
+                    const putRequest = store.put(fileData);
+                    putRequest.onsuccess = () => {
                         fileIds.push(fileId);
                         resolve();
                     };
-                    addRequest.onerror = () => reject(addRequest.error);
+                    putRequest.onerror = () => reject(putRequest.error);
                 };
             });
         }

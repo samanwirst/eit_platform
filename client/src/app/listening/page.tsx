@@ -129,7 +129,7 @@ const ListeningPage = () => {
             label: 'Sections',
             render: (value: any, row: ListeningTest) => (
                 <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                    {row.sections.length} sections
+                    {row.sections?.length || 0} sections
                 </span>
             ),
         },
