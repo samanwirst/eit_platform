@@ -99,13 +99,13 @@ const UsersPage = () => {
                         onClick={() => {
                             // TODO: Implement edit functionality
                         }}
-                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        className="w-30 h-10 px-3 py-1 bg-blue-500 text-white text-md rounded hover:bg-blue-600 transition-colors"
                     />
                     <ButtonDefault
                         label="Delete"
                         onClick={() => handleDeleteClick(row._id)}
                         disabled={deleteLoading}
-                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors disabled:opacity-50"
+                        className="w-30 h-10 px-3 py-1 bg-red-500 text-white text-md rounded hover:bg-red-600 transition-colors disabled:opacity-50"
                     />
                 </div>
             ),

@@ -46,7 +46,7 @@ const Sidebar = () => {
     ];
 
     return (
-        <aside className="h-screen transition ease-out duration-300 w-70 border-r border-outlined bg-secondary">
+        <aside className="min-h-screen transition ease-out duration-300 w-70 border-r border-outlined bg-secondary">
             <div className="h-14 border-b border-outlined p-4 content-center">
                 <Link href={"/"} className="block">
                     <div className="flex items-center">

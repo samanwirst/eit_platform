@@ -10,7 +10,7 @@ export default function LayoutDefault({
   //   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
-      <div className="flex h-screen transition ease-out duration-300 bg-primary">
+      <div className="flex min-h-screen transition ease-out duration-300 bg-primary">
         <Sidebar />
 
         <div className="flex flex-1 flex-col">
