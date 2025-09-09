@@ -13,7 +13,8 @@ export default function LayoutDefault({
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    // Force a hard refresh to ensure all components update
+    window.location.href = '/login';
   };
 
   return (

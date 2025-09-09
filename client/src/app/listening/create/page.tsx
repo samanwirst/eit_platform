@@ -6,7 +6,6 @@ import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import RichTextEditor, { RichTextEditorHandle } from '@/components/Editor/RichTextEditor';
 import InputDefault from '@/components/Inputs/InputDefault';
 import AudioUpload from '@/components/Inputs/AudioUpload';
-import ImageUpload from '@/components/Inputs/ImageUpload';
 import ButtonDefault from '@/components/Buttons/ButtonDefault';
 
 interface ListeningSection {
@@ -17,7 +16,6 @@ interface ListeningSection {
 interface ListeningData {
     title: string;
     audioFile: File | null;
-    coverImage: File | null;
     sections: ListeningSection[];
 }
 
@@ -26,7 +24,6 @@ const CreateListeningPage = () => {
     const [listeningData, setListeningData] = useState<ListeningData>({
         title: '',
         audioFile: null,
-        coverImage: null,
         sections: [
             { id: '1', content: '' },
             { id: '2', content: '' },
@@ -38,7 +35,7 @@ const CreateListeningPage = () => {
 
     const editorRefs = useRef<(RichTextEditorHandle | null)[]>([]);
 
-    const storeFileInIndexedDB = async (file: File, testId: string, fileType: 'audio' | 'cover'): Promise<string> => {
+    const storeFileInIndexedDB = async (file: File, testId: string, fileType: 'audio'): Promise<string> => {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('ListeningFiles', 1);
             
@@ -95,7 +92,6 @@ const CreateListeningPage = () => {
 
             const testId = `listening_${Date.now()}`;
             const audioFileId = await storeFileInIndexedDB(listeningData.audioFile, testId, 'audio');
-            const coverImageId = listeningData.coverImage ? await storeFileInIndexedDB(listeningData.coverImage, testId, 'cover') : null;
 
             const finalData = {
                 id: testId,
@@ -106,12 +102,6 @@ const CreateListeningPage = () => {
                     type: listeningData.audioFile.type,
                     size: listeningData.audioFile.size
                 },
-                coverImage: listeningData.coverImage ? {
-                    id: coverImageId,
-                    name: listeningData.coverImage.name,
-                    type: listeningData.coverImage.type,
-                    size: listeningData.coverImage.size
-                } : null,
                 sections: sectionsWithContent,
                 createdAt: new Date().toISOString()
             };
@@ -151,22 +141,11 @@ const CreateListeningPage = () => {
                             customClasses="mb-4"
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Audio File (for all sections)</label>
-                                <AudioUpload
-                                    onFileSelected={(file) => setListeningData(prev => ({ ...prev, audioFile: file }))}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Cover Image</label>
-                                <ImageUpload
-                                    onFilesSelected={(files) => setListeningData(prev => ({ ...prev, coverImage: files[0] || null }))}
-                                    multiple={false}
-                                    maxFiles={1}
-                                />
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Audio File (for all sections)</label>
+                            <AudioUpload
+                                onFileSelected={(file) => setListeningData(prev => ({ ...prev, audioFile: file }))}
+                            />
                         </div>
                     </div>
 

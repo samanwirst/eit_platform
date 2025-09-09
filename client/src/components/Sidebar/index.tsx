@@ -18,6 +18,41 @@ const Sidebar = () => {
         setUserRole(getUserRole());
     }, []);
 
+    // Listen for auth state changes
+    useEffect(() => {
+        const handleAuthStateChange = () => {
+            setUserRole(getUserRole());
+        };
+
+        const handleStorageChange = () => {
+            setUserRole(getUserRole());
+        };
+
+        const handleFocus = () => {
+            setUserRole(getUserRole());
+        };
+
+        // Listen for custom auth state change events
+        window.addEventListener('authStateChanged', handleAuthStateChange);
+        
+        // Listen for storage changes (when user logs in/out in another tab)
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also listen for focus events (when user switches back to this tab)
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            window.removeEventListener('authStateChanged', handleAuthStateChange);
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, []);
+
+    // Update user role when pathname changes (navigation)
+    useEffect(() => {
+        setUserRole(getUserRole());
+    }, [pathname]);
+
     // Admin menu items
     const adminMenuItems = [
         { label: "Dashboard", route: "/" },

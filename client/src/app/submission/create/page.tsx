@@ -18,12 +18,6 @@ interface ListeningData {
         type: string;
         size: number;
     } | null;
-    coverImage: {
-        id: string;
-        name: string;
-        type: string;
-        size: number;
-    } | null;
     sections: Array<{
         id: string;
         content: string;
@@ -53,7 +47,6 @@ interface MockData {
         id: string;
         title: string;
         audioFile: File | null;
-        coverImage: File | null;
         sections: Array<{
             id: string;
             content: string;
@@ -166,12 +159,10 @@ const SubmissionCreatePage = () => {
         if (test) {
             // Load files from IndexedDB
             const audioFile = test.audioFile?.id ? await getFileFromIndexedDB(test.audioFile.id) : null;
-            const coverImage = test.coverImage?.id ? await getFileFromIndexedDB(test.coverImage.id) : null;
             
             const testWithFiles = {
                 ...test,
-                audioFile,
-                coverImage
+                audioFile
             };
             
             setMockData(prev => ({
@@ -286,10 +277,6 @@ const SubmissionCreatePage = () => {
                 // Add audio file if it's a proper File object
                 if (mockData.listeningData.audioFile && mockData.listeningData.audioFile instanceof File) {
                     formData.append('listening.files[]', mockData.listeningData.audioFile);
-                }
-                // Add cover image if it's a proper File object
-                if (mockData.listeningData.coverImage && mockData.listeningData.coverImage instanceof File) {
-                    formData.append('listening.files[]', mockData.listeningData.coverImage);
                 }
             } else {
                 formData.append('listening.content', "Something will be here.");

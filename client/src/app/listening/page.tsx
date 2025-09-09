@@ -17,12 +17,6 @@ interface ListeningTest {
         type: string;
         size: number;
     };
-    coverImage?: {
-        id: string;
-        name: string;
-        type: string;
-        size: number;
-    };
     sections: Array<{
         id: string;
         content: string;
@@ -108,20 +102,6 @@ const ListeningPage = () => {
                     <div className="font-medium">{row.audioFile.name}</div>
                     <div className="text-sm text-gray-500">{formatFileSize(row.audioFile.size)}</div>
                 </div>
-            ),
-        },
-        {
-            key: 'coverImage',
-            label: 'Cover Image',
-            render: (value: any, row: ListeningTest) => (
-                row.coverImage ? (
-                    <div>
-                        <div className="font-medium">{row.coverImage.name}</div>
-                        <div className="text-sm text-gray-500">{formatFileSize(row.coverImage.size)}</div>
-                    </div>
-                ) : (
-                    <span className="text-gray-400">No image</span>
-                )
             ),
         },
         {

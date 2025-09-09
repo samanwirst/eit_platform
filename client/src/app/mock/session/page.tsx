@@ -113,6 +113,11 @@ const TestSessionPage = () => {
         </div>`, []);
 
     const cleanContent = (content: string): string => {
+        // If content is already HTML, return as is
+        if (content.includes('<') && content.includes('>')) {
+            return content;
+        }
+        
         try {
             const deltaData = JSON.parse(content);
             if (deltaData.ops && Array.isArray(deltaData.ops)) {
@@ -120,7 +125,18 @@ const TestSessionPage = () => {
                 deltaData.ops.forEach((op: any) => {
                     if (op.insert) {
                         if (typeof op.insert === 'string') {
-                            html += op.insert;
+                            // Handle text with formatting
+                            let text = op.insert;
+                            if (op.attributes) {
+                                if (op.attributes.bold) text = `<strong>${text}</strong>`;
+                                if (op.attributes.italic) text = `<em>${text}</em>`;
+                                if (op.attributes.underline) text = `<u>${text}</u>`;
+                                if (op.attributes.header) {
+                                    const level = op.attributes.header;
+                                    text = `<h${level}>${text}</h${level}>`;
+                                }
+                            }
+                            html += text;
                         } else if (op.insert.text) {
                             html += op.insert.text;
                         }
@@ -129,6 +145,7 @@ const TestSessionPage = () => {
                 return html.replace(/\n/g, '<br>');
             }
         } catch (e) {
+            // If parsing fails, return the content as is
         }
         return content;
     };

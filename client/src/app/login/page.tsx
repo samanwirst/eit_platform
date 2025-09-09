@@ -45,7 +45,8 @@ const LoginPage = () => {
 
         try {
             await login(phoneNumber, password);
-            router.push("/");
+            // Force a hard refresh to ensure all components update
+            window.location.href = "/";
         } catch (err: any) {
             setError(err.message);
         }

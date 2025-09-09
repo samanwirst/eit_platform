@@ -21,11 +21,17 @@ export async function login(phoneNumber: string, password: string): Promise<void
   }
 
   Cookies.set(ACCESS_TOKEN_KEY, token, { expires: 1 });
+  
+  // Trigger a custom event to notify components of auth state change
+  window.dispatchEvent(new CustomEvent('authStateChanged'));
 }
 
 export function logout(): void {
   Cookies.remove(ACCESS_TOKEN_KEY);
   Cookies.remove(REFRESH_TOKEN_KEY);
+  
+  // Trigger a custom event to notify components of auth state change
+  window.dispatchEvent(new CustomEvent('authStateChanged'));
 }
 
 export function getAccessToken(): string | undefined {
