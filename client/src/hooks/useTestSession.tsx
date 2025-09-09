@@ -35,7 +35,8 @@ export const useTestSession = () => {
         try {
             const testData = JSON.parse(storedTest);
             const answers = storedAnswers ? JSON.parse(storedAnswers) : {};
-            const timeRemaining = storedTime ? parseInt(storedTime) : 180 * 60; // 3 hours default
+            const timeRemaining = storedTime ? parseInt(storedTime) : 180 * 60;
+
 
             const data: SessionData = {
                 testData,
@@ -109,13 +110,11 @@ export const useTestSession = () => {
             clearTimeout(blurTimeoutRef.current);
         }
 
-        // Save final answers
         if (sessionData) {
             sessionStorage.setItem('finalTestAnswers', JSON.stringify(sessionData.answers));
             sessionStorage.setItem('testEndTime', new Date().toISOString());
         }
 
-        // Clear session data
         sessionStorage.removeItem('currentTest');
         sessionStorage.removeItem('testKey');
         sessionStorage.removeItem('testStartTime');
