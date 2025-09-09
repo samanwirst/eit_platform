@@ -247,3 +247,33 @@ export const getKeys = (token: string) =>
 
 export const deleteKey = (id: string, token: string) =>
     api.del<{ success: boolean }>(`/key/${id}`, { token });
+
+// ========== TEST ACCESS ==========
+export interface TestAccessResponse {
+    ok: boolean;
+    test: {
+        _id: string;
+        title: string;
+        reading: {
+            sections: {
+                one: { title: string; content: string; files: string[] };
+                two: { title: string; content: string; files: string[] };
+                three: { title: string; content: string; files: string[] };
+                four: { title: string; content: string; files: string[] };
+            };
+        };
+        listening: {
+            content: string;
+            files: string[];
+        };
+        writing: {
+            sections: {
+                one: { title: string; content: string; files: string[] };
+                two: { title: string; content: string; files: string[] };
+            };
+        };
+    };
+}
+
+export const accessTestWithKey = (key: string) =>
+    api.get<TestAccessResponse>(`/access-test/${key}`);

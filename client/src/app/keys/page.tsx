@@ -12,6 +12,8 @@ const KeysPage = () => {
     const [tests, setTests] = useState<Test[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+    const [generatedKey, setGeneratedKey] = useState<string>('');
     const [formData, setFormData] = useState({
         userId: '',
         testId: ''
@@ -45,10 +47,18 @@ const KeysPage = () => {
         if (!token || !formData.userId || !formData.testId) return;
 
         try {
-            await createKey(formData, token);
+            const response = await createKey(formData, token);
             setIsCreateModalOpen(false);
             setFormData({ userId: '', testId: '' });
-            AlertDefault.success('Key generated successfully!');
+            
+            // Show the generated key in a modal
+            if (response?.key) {
+                setGeneratedKey(response.key);
+                setIsKeyModalOpen(true);
+                AlertDefault.success('Key generated successfully!');
+            } else {
+                AlertDefault.success('Key generated successfully!');
+            }
         } catch (error) {
             console.error('Error creating key:', error);
             AlertDefault.error('Failed to generate key. Please try again.');
@@ -132,6 +142,41 @@ const KeysPage = () => {
                             Generate Key
                         </ButtonDefault>
                     </div>
+                    </div>
+                </div>
+            </ModalWindowDefault>
+
+            {/* Generated Key Modal */}
+            <ModalWindowDefault
+                isOpen={isKeyModalOpen}
+                onClose={() => setIsKeyModalOpen(false)}
+            >
+                <div className="p-6">
+                    <h2 className="text-xl font-bold mb-4">Generated Key</h2>
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gray-100 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-2">Access Key:</p>
+                            <p className="text-2xl font-mono font-bold text-center bg-white p-3 rounded border">
+                                {generatedKey}
+                            </p>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            <p><strong>Important:</strong></p>
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                                <li>Share this key with the student</li>
+                                <li>Students can use this key to access the test</li>
+                                <li>This key can only be used once</li>
+                                <li>The key will be deleted after the student accesses the test</li>
+                            </ul>
+                        </div>
+                        <div className="flex justify-end">
+                            <ButtonDefault
+                                onClick={() => setIsKeyModalOpen(false)}
+                                className="bg-blue-500 hover:bg-blue-600"
+                            >
+                                Close
+                            </ButtonDefault>
+                        </div>
                     </div>
                 </div>
             </ModalWindowDefault>

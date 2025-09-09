@@ -29,9 +29,9 @@ export function middleware(request: NextRequest) {
             return NextResponse.next();
         }
 
-        // Student (user) can only access dashboard and mock page
+        // Student (user) can only access dashboard, mock page, and mock session pages
         if (role === 'user') {
-            const allowedPaths = ['/', '/mock'];
+            const allowedPaths = ['/', '/mock', '/mock/session', '/mock/blur'];
             if (!allowedPaths.includes(pathname)) {
                 return NextResponse.redirect(new URL("/", request.url));
             }
