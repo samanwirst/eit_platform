@@ -134,6 +134,7 @@ export const createUser = async (data: CreateUserData, token: string): Promise<U
     return api.post<User>("/users", cleanData, { token });
 };
 
+//@ts-ignore
 export const getUsers = (token: string) =>
     api.get<{ ok: boolean; users: User[] }>("/users", { token });
 

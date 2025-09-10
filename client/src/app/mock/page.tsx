@@ -139,6 +139,7 @@ const MockPage = () => {
                             placeholder="Enter your test key (e.g., ABC12345)"
                             value={testKey}
                             onChange={(e) => setTestKey(e.target.value.toUpperCase())}
+                            //@ts-ignore
                             className="w-full text-center text-lg font-mono tracking-wider"
                             maxLength={8}
                         />

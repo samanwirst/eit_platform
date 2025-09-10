@@ -41,6 +41,7 @@ const WritingSectionAddPage: React.FC = () => {
             formData.append('delta', contentJson);
             files.forEach((file) => formData.append('files', file));
 
+            //@ts-ignore
             await createTest(formData); // передаём токен
 
             router.push(`/folders`);

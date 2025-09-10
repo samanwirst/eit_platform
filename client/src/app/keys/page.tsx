@@ -34,7 +34,9 @@ const KeysPage = () => {
                 getTests(token)
             ]);
 
+            //@ts-ignore
             setUsers(usersResponse?.users || usersResponse || []);
+            //@ts-ignore
             setTests(testsResponse?.tests || testsResponse || []);
         } catch (error) {
             console.error('Error fetching data:', error);

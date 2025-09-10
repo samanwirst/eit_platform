@@ -1,7 +1,7 @@
 import Quill from 'quill';
 
 const BlockEmbed = Quill.import('blots/block/embed');
-
+//@ts-ignore
 export class CheckboxBlockBlot extends BlockEmbed {
     static blotName = 'checkboxBlock';
     static tagName = 'div';

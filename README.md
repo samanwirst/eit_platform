@@ -1,1 +1,0 @@
-# eit_platform

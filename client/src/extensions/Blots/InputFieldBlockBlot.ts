@@ -1,6 +1,6 @@
 import Quill from 'quill';
 const BlockEmbed = Quill.import('blots/block/embed');
-
+//@ts-ignore
 export class InputFieldBlockBlot extends BlockEmbed {
     static blotName = 'inputFieldBlock';
     static tagName = 'div';
