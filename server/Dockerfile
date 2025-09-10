@@ -1,9 +1,9 @@
-FROM oven/bun
+FROM oven/bun:latest
 
-COPY package.json ./
-
-RUN bun install
+WORKDIR /app
 
 COPY . .
 
-CMD ["bun" "run" "app.ts"]
+RUN bun install
+
+CMD ["bun", "run", "app.ts"]
