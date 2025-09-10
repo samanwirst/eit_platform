@@ -14,6 +14,7 @@ interface TokenPayload {
 
 // Логин + сохранение токенов в cookie
 export async function login(phoneNumber: string, password: string): Promise<void> {
+  //@ts-ignore
   const { ok, token } = await loginRequest(phoneNumber, password);
 
   if (!ok || !token) {

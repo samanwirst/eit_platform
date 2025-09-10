@@ -53,6 +53,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
       icons.insertInputField = inputField;
 
       Quill.register('modules/insertRadio', RadioSelectModule.default);
+      //@ts-ignore
       Quill.register(RadioBlotModule.RadioBlockBlot);
       Quill.register(
         {
@@ -62,10 +63,13 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
         true
       );
       Quill.register('modules/insertSelectOptions', SelectOptionsModule.default);
+      //@ts-ignore
       Quill.register(SelectOptionsBlot.SelectOptionsBlot);
       Quill.register('modules/insertCheckbox', CheckboxSelectOptionModule.default);
+      //@ts-ignore
       Quill.register(CheckboxBlockBlot.CheckboxBlockBlot);
       Quill.register('modules/insertInputField', InputFieldInsertModule.default);
+      //@ts-ignore
       Quill.register(InputFieldBlockBlot.InputFieldBlockBlot);
 
       const quill = new Quill(editorRef.current!, {
@@ -84,22 +88,27 @@ const RichTextEditor = forwardRef<RichTextEditorHandle>((_, ref) => {
             handlers: {
               insertRadio() {
                 const mod = quill.getModule('insertRadio');
+                //@ts-ignore
                 mod?.openDialog();
               },
               insertTable() {
                 const mod = quill.getModule('insertTable');
+                //@ts-ignore
                 mod?.openDialog();
               },
               insertSelectOptions() {
                 const mod = quill.getModule('insertSelectOptions');
+                //@ts-ignore
                 mod?.openDialog();
               },
               insertCheckbox() {
                 const mod = quill.getModule('insertCheckbox');
+                //@ts-ignore
                 mod?.openDialog();
               },
               insertInputField() {
                 const mod = quill.getModule('insertInputField');
+                //@ts-ignore
                 mod?.openDialog();
               },
             },
