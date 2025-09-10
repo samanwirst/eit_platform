@@ -2,8 +2,10 @@ FROM oven/bun:latest
 
 WORKDIR /app
 
-COPY . .
+COPY package.json ./
 
 RUN bun install
+
+COPY . .
 
 CMD ["bun", "run", "app.ts"]
