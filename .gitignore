@@ -1,8 +1,8 @@
-./client/node_modules
-./client/.next
-./client/.env
-./server/node_modules
-./server/uploads
-./server/.env
+client/node_modules
+client/.next
+client/.env
+server/node_modules
+server/uploads
+server/.env
 
 next-env.d.ts
