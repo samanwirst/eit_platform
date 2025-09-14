@@ -13,7 +13,6 @@ interface TestData {
             one: { title: string; content: string; files: string[] };
             two: { title: string; content: string; files: string[] };
             three: { title: string; content: string; files: string[] };
-            four: { title: string; content: string; files: string[] };
         };
     };
     listening: {
@@ -50,69 +49,12 @@ const TestSessionPage = () => {
     const [initialHTML, setInitialHTML] = useState<{ [key: string]: string }>({});
     const [testStartTime, setTestStartTime] = useState<Date | null>(null);
 
-    // Function to create questions with embedded answer areas
-    const createQuestionsWithAnswers = React.useCallback((questions: string[]): string => {
-        let html = '';
-        questions.forEach((question, index) => {
-            html += `<div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #f9fafb;">
-                <div class="question-text" style="font-weight: bold; color: #374151; margin-bottom: 10px; user-select: none; background-color: #f3f4f6; padding: 8px; border-radius: 4px; border: 1px solid #d1d5db;">
-                    Question ${index + 1}: ${question}
-                </div>
-                <div class="answer-area" style="border: 2px dashed #d1d5db; padding: 10px; min-height: 50px; background-color: white; border-radius: 4px; margin-top: 10px;">
-                    <span style="color: #9ca3af; font-style: italic;">Type your answer here...</span>
-                </div>
-            </div>`;
-        });
-        return html;
-    }, []);
-
-    // Memoized content for different sections
-    const readingQuestions = React.useMemo(() => [
-        "What is the main topic of the passage?",
-        "According to the text, what are the key benefits mentioned?",
-        "How does the author support their argument?",
-        "What conclusion can be drawn from the information provided?",
-        "What is the author's tone throughout the passage?",
-        "Which statement best summarizes the passage?",
-        "What evidence is provided to support the main claim?",
-        "How does this information relate to current trends?",
-        "What would be the most appropriate title for this passage?",
-        "What implications does this have for the future?"
-    ], []);
-
-    const listeningQuestions = React.useMemo(() => [
-        "What is the main topic of the conversation?",
-        "Who are the speakers discussing?",
-        "What is the speaker's opinion about the topic?",
-        "What specific details are mentioned?",
-        "What is the tone of the conversation?",
-        "What conclusion can be drawn from the dialogue?",
-        "What information is most important?",
-        "How do the speakers feel about the situation?",
-        "What would be the best summary of this conversation?",
-        "What implications does this have?"
-    ], []);
-
-    const readingContent = React.useMemo(() => createQuestionsWithAnswers(readingQuestions), [createQuestionsWithAnswers, readingQuestions]);
-    const listeningContent = React.useMemo(() => createQuestionsWithAnswers(listeningQuestions), [createQuestionsWithAnswers, listeningQuestions]);
-
-    const writingTask1Content = React.useMemo(() => 
-        `<div class="question-text" style="font-weight: bold; color: #374151; margin-bottom: 10px; user-select: none; background-color: #f3f4f6; padding: 8px; border-radius: 4px; border: 1px solid #d1d5db;">
-            Task 1: Write a report describing the information shown in the chart/graph above. Write at least 150 words.
-        </div>
-        <div class="answer-area" style="border: 2px dashed #d1d5db; padding: 10px; min-height: 200px; background-color: white; border-radius: 4px; margin-top: 10px;">
-            <span style="color: #9ca3af; font-style: italic;">Type your answer here...</span>
-        </div>`, []);
-
-    const writingTask2Content = React.useMemo(() => 
-        `<div class="question-text" style="font-weight: bold; color: #374151; margin-bottom: 10px; user-select: none; background-color: #f3f4f6; padding: 8px; border-radius: 4px; border: 1px solid #d1d5db;">
-            Task 2: Write an essay discussing the topic above. Give your opinion and support it with examples. Write at least 250 words.
-        </div>
-        <div class="answer-area" style="border: 2px dashed #d1d5db; padding: 10px; min-height: 300px; background-color: white; border-radius: 4px; margin-top: 10px;">
-            <span style="color: #9ca3af; font-style: italic;">Type your answer here...</span>
-        </div>`, []);
-
-    const cleanContent = (content: string): string => {
+    const cleanContent = (content: string | null | undefined): string => {
+        // Handle null, undefined, or empty content
+        if (!content || typeof content !== 'string') {
+            return '';
+        }
+        
         // If content is already HTML, return as is
         if (content.includes('<') && content.includes('>')) {
             return content;
@@ -122,30 +64,76 @@ const TestSessionPage = () => {
             const deltaData = JSON.parse(content);
             if (deltaData.ops && Array.isArray(deltaData.ops)) {
                 let html = '';
+                let inTable = false;
+                let tableRows: string[] = [];
+                let currentRow: string[] = [];
+                
                 deltaData.ops.forEach((op: any) => {
                     if (op.insert) {
                         if (typeof op.insert === 'string') {
                             // Handle text with formatting
                             let text = op.insert;
-                            if (op.attributes) {
-                                if (op.attributes.bold) text = `<strong>${text}</strong>`;
-                                if (op.attributes.italic) text = `<em>${text}</em>`;
-                                if (op.attributes.underline) text = `<u>${text}</u>`;
-                                if (op.attributes.header) {
-                                    const level = op.attributes.header;
-                                    text = `<h${level}>${text}</h${level}>`;
+                            
+                            // Handle table cells
+                            if (op.attributes && op.attributes['table-cell-line']) {
+                                if (!inTable) {
+                                    html += '<table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
+                                    inTable = true;
                                 }
+                                
+                                // Add cell content
+                                currentRow.push(`<td style="padding: 8px; border: 1px solid #ccc;">${text}</td>`);
+                                
+                                // Check if this is the end of a row
+                                if (text.includes('\n') || op.attributes['table-cell-line'].row !== currentRow[0]?.match(/row-\w+/)?.[0]) {
+                                    if (currentRow.length > 0) {
+                                        tableRows.push(`<tr>${currentRow.join('')}</tr>`);
+                                        currentRow = [];
+                                    }
+                                }
+                            } else {
+                                // Close table if we were in one
+                                if (inTable) {
+                                    if (currentRow.length > 0) {
+                                        tableRows.push(`<tr>${currentRow.join('')}</tr>`);
+                                    }
+                                    html += tableRows.join('') + '</table>';
+                                    inTable = false;
+                                    tableRows = [];
+                                    currentRow = [];
+                                }
+                                
+                                // Handle regular text formatting
+                                if (op.attributes) {
+                                    if (op.attributes.bold) text = `<strong>${text}</strong>`;
+                                    if (op.attributes.italic) text = `<em>${text}</em>`;
+                                    if (op.attributes.underline) text = `<u>${text}</u>`;
+                                    if (op.attributes.header) {
+                                        const level = op.attributes.header;
+                                        text = `<h${level}>${text}</h${level}>`;
+                                    }
+                                }
+                                html += text;
                             }
-                            html += text;
                         } else if (op.insert.text) {
                             html += op.insert.text;
                         }
                     }
                 });
+                
+                // Close any remaining table
+                if (inTable) {
+                    if (currentRow.length > 0) {
+                        tableRows.push(`<tr>${currentRow.join('')}</tr>`);
+                    }
+                    html += tableRows.join('') + '</table>';
+                }
+                
                 return html.replace(/\n/g, '<br>');
             }
         } catch (e) {
             // If parsing fails, return the content as is
+            console.warn('Failed to parse content:', e);
         }
         return content;
     };
@@ -381,7 +369,9 @@ const TestSessionPage = () => {
                             <h2 className="text-2xl font-bold text-blue-900">Reading Section</h2>
                             <p className="text-blue-700 mt-1">Read the passages below and answer the questions. Each section has 10 questions.</p>
                         </div>
-                        {Object.entries(testData.reading.sections).map(([sectionKey, section]) => (
+                        {Object.entries(testData.reading.sections)
+                            .filter(([sectionKey]) => ['one', 'two', 'three'].includes(sectionKey))
+                            .map(([sectionKey, section]) => (
                             <div key={sectionKey} className="bg-white rounded-lg shadow p-6">
                                 <h3 className="text-lg font-semibold mb-4">{section.title}</h3>
                                 <div 
@@ -410,7 +400,7 @@ const TestSessionPage = () => {
                                                 readingEditorRefs.current[`reading_${sectionKey}`] = ref;
                                             }
                                         }}
-                                        initialContent={readingContent}
+                                        initialContent=""
                                     />
                                 </div>
                             </div>
@@ -449,7 +439,7 @@ const TestSessionPage = () => {
                                 </div>
                                 <ReadOnlyRichTextEditor
                                     ref={listeningEditorRef}
-                                    initialContent={listeningContent}
+                                    initialContent=""
                                 />
                             </div>
                         </div>
@@ -488,7 +478,7 @@ const TestSessionPage = () => {
                                                 writingEditorRefs.current[`writing_${sectionKey}`] = ref;
                                             }
                                         }}
-                                        initialContent={sectionKey === 'one' ? writingTask1Content : writingTask2Content}
+                                        initialContent=""
                                     />
                                 </div>
                             </div>

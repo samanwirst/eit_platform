@@ -166,7 +166,6 @@ export interface Test {
             one?: { title: string; content: string; files: string[] };
             two?: { title: string; content: string; files: string[] };
             three?: { title: string; content: string; files: string[] };
-            four?: { title: string; content: string; files: string[] };
         };
     };
     listening: {
@@ -260,7 +259,6 @@ export interface TestAccessResponse {
                 one: { title: string; content: string; files: string[] };
                 two: { title: string; content: string; files: string[] };
                 three: { title: string; content: string; files: string[] };
-                four: { title: string; content: string; files: string[] };
             };
         };
         listening: {

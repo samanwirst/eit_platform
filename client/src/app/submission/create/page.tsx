@@ -249,7 +249,7 @@ const SubmissionCreatePage = () => {
             formData.append('title', mockData.title);
 
             // Process reading sections
-            const readingSections = ['one', 'two', 'three', 'four'];
+            const readingSections = ['one', 'two', 'three'];
             readingSections.forEach((section, index) => {
                 const paragraph = mockData.readingParagraphs[index];
                 if (paragraph) {
