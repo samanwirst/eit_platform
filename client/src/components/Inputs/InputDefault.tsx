@@ -29,7 +29,7 @@ const InputDefault: React.FC<InputDefaultProps> = ({
     maxLength
 }) => {
     const handleCopy = () => {
-        if (isCopiable && navigator.clipboard) {
+        if (isCopiable && navigator.clipboard && value) {
             navigator.clipboard.writeText(value).then(() => {
                 alert("Copied: " + value)
             });

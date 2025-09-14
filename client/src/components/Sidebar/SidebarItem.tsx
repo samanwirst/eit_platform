@@ -84,7 +84,7 @@ const SidebarItem = (props: SidebarItemProps) => {
                 : "hover:text-black"
                 }`}
         >
-            <Link href={props.route} className="block py-2 text-sm ml-4 flex items-center">
+            <Link href={props.route} className="py-2 text-sm ml-4 flex items-center">
                 {props.icon && <props.icon className="mr-2" fontSize="small" />}
                 {props.label}
             </Link>
